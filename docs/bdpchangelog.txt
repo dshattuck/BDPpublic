@@ -1,0 +1,78 @@
+v15c (2015-12-27, Build #0055)
+   * Dropped Dicom input support
+   * Added HTML readme file with flag documentation in packaged output.
+   * Made compatible with GNU GPL License
+
+v15a, v15b (2015-07-17, Build #0051)
+   * Added INVERSION-based methods for distortion correction and co-registration
+   * Similarity measures/methods for both non-rigid and rigid registration can be changed/specified (--rigid-reg-measure, --dcorr-reg-method)
+   * Full q-form and s-form support (both in input and output)
+   * The regularization weight can be specified by user (--dcorr-regularization-wt)
+   * Added non-uniformity correction of images (only for co-registration), which can be disabled (--no-nonuniformity-correction)
+   * Added support for config-files for batch processing (--flag-conf-file)
+   * Added computation of mADC and GFA
+   * Added a customized label-description xml file as default xml for statistics computation (compatible output as SVReg)
+   * Several runtime optimization, bug fixes, and addition of informative error messages.
+
+v14c (2014-12-31, Build #0044)
+   * Added search based initialization for rigid registration. 
+   * Added support for different label-description xml files. 
+   * Updated optimization routines to be consistent across Linux, Mac and Windows operating systems. 
+   * Outputs on different platforms have maximum difference of 1e-7 (in our test datasets). 
+   * Several bug-fixes.
+
+v14b (2014-07-20, Build #0036)
+   * Added ability to use BDP without any structural image via --no-structural-registration. Fieldmap based distortion correction is also supported in this mode.
+   * BDP can now accurately detect diffusion weighted image with almost no weighting in absence of b=0 image. Users can tweak the parameter via --bval-ratio-threshold
+   * Added normalization of diffusion weighted image with b=0 image to reduce effects due to bias-field. 
+   * Added checks for ill-posed diffusion encoding and shows warnings when relevant.
+   * Various bug fixes 
+
+v14a (2014-05-18, Build #0030)
+   * Added new least-square based distortion correction method while using fieldmap via --fmap-least-square.
+   * Added support to transform custom surfaces to-and-fro from T1 and diffusion coordinates via --transform-t1-surface and --transform-diffusion-surface.
+   * BDP now also writes .bst files which can be used to easily load all data in BrainSuite required for tractography and connectivity analysis.
+   * Better cross-platform compatibility.
+   * Numerous bug fixes and memory optimization.
+
+v13p17 (2013-09-09)
+   * Added support to transform custom volumes to-and-fro from T1 and diffusion coordinates via --transform-t1-volume and --transform-diffusion-volume.
+   * Added ability to define custom diffusion and anatomical masks via flags --t1-mask and --dwi-mask
+   * Added ability to automatically detect BrainSuite mask (<fileprefix>.mask.nii.gz) files for structural mask.
+   * Added ability to check current running version and check for updates via --version and --check-for-updates flag.
+   * Added offline documentation of flags via --help flag.
+   * Added ability to write all outputs (& intermediate files) in custom sub-directory via --output-subdir flag.
+   * BDP now checks for field of view (FOV) of fieldmap and diffusion scan and reports/quits when fieldmap FOV does not cover sufficient diffusion FOV. The error related to fieldmap FOV can be suppressed via --ignore-fieldmap-FOV
+   * BDP now writes out summary of the execution to <fileprefix>.BDPSummary.txt with relevant references, the BDP command used and approximate execution time.
+   * Added support for input .bmat files.
+   * Added ability to compute ROI-wise statistics for different diffusion parameters via --generate-stats flag. By default BDP will look for SVReg labels and use them for ROI labels. BDP also check for overlap of field of view of diffusion and MPRAGE scan and reports accordingly.
+   * Added support for custom ROIs and their definition for statistics computation via flags --custom-diffusion-label, --custom-T1-label and --custom-label-xml. If no custom definition is found, BDP generated its own IDs for custom ROIs and writes it out in an xml file (BDP_ROI_MAP.xml).
+   * Added ability to compute diffusion parameters (and statistics, if applicable) in native diffusion coordinates via --output-diffusion-coordinate flag.
+   * Added ability to control regularization parameter (lambda) for ODF computation via --odf-lambda flag.
+   * Better error handling with descriptive help messages with possible cause and fix.
+   * Full support for all input NIfTI files with undefined sform parameters in the file header (must have qform parameters defined).
+   * Bug fixes:
+      - pseudo skull stripping is now more robust to noise
+      - Fixed overwriting of some specific files
+      - Fixed memory consumption during computation of ODFs and tensors in T1-coordinates. It will also reduce the computation time.
+      - All flags are now strictly case insensitive.
+      - Fixed any possible overwriting of all input files with NIfTI input.
+      - Fixed NaN issues in FA and other tensor estimates.
+      - dicom2nifti now performs more checks.
+
+v13p3 (2013-06-14)
+   * Rigid registration algorithm has been improved to perform consistently with diffusion MRI scans acquired with different b-values.
+   * Naming convention of output files are made consistent across different modes of BDP. Output files with '.RAS' in their file-names store values with fastest changing voxel index increasing along right side of the subject followed by anterior and then by superior direction.
+   * Added progress-bar on console output for most functions
+   * Bug fixes: 
+      - Temporary file-name is generated by a better random string generator
+      - Fixed automatic b=0 image detection with NIfTI input files
+      - Fixed pseudo skull stripping to work with noisy datasets as well
+      - Significant code re-factoring
+
+v13p1 (2013-04-17)
+   * First version of BDP
+   * Consistent results on all platforms
+   * Exit code 78 added when MCR can not be found
+   * Added about.txt & Changelog
+

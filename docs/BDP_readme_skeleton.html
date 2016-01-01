@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BrainSuite Diffusion Pipeline</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script>
+      (function(){var g=function(a){if(a&&a.stopPropagation)a.stopPropagation();else window.event.cancelBubble=true;var b=a?a:window.event;b.preventDefault&&b.preventDefault()},d=function(a,c,b){if(a.addEventListener)a.addEventListener(c,b,false);else a.attachEvent&&a.attachEvent("on"+c,b)},a=function(c,a){var b=new RegExp("(^| )"+a+"( |$)");return b.test(c.className)?true:false},j=function(b,c,d){if(!a(b,c))if(b.className=="")b.className=c;else if(d)b.className=c+" "+b.className;else b.className+=" "+c},h=function(a,b){var c=new RegExp("(^| )"+b+"( |$)");a.className=a.className.replace(c,"$1");a.className=a.className.replace(/ $/,"")},e=function(){var b=window.location.pathname;if(b.indexOf("/")!=-1)b=b.split("/");var a=b[b.length-1]||"root";if(a.indexOf(".")!=-1)a=a.substring(0,a.indexOf("."));if(a>20)a=a.substring(a.length-19);return a},c="mi"+e(),b=function(b,a){this.g(b,a)};b.prototype={h:function(){var b=new RegExp(c+this.a+"=(\\d+)"),a=document.cookie.match(b);return a?a[1]:this.i()},i:function(){for(var b=0,c=this.b.length;b<c;b++)if(a(this.b[b].parentNode,"selected"))return b;return 0},j:function(b,d){var c=document.getElementById(b.TargetId);if(!c)return;this.l(c);for(var a=0;a<this.b.length;a++)if(this.b[a]==b){j(b.parentNode,"selected");d&&this.d&&this.k(this.a,a)}else h(this.b[a].parentNode,"selected")},k:function(a,b){document.cookie=c+a+"="+b+"; path=/"},l:function(b){for(var a=0;a<this.c.length;a++)this.c[a].style.display=this.c[a].id==b.id?"block":"none"},m:function(){this.c=[];for(var c=this,a=0;a<this.b.length;a++){var b=document.getElementById(this.b[a].TargetId);if(b){this.c.push(b);d(this.b[a],"click",function(b){var a=this;if(a===window)a=window.event.srcElement;c.j(a,1);g(b);return false})}}},g:function(f,h){this.a=h;this.b=[];for(var e=f.getElementsByTagName("a"),i=/#([^?]+)/,a,b,c=0;c<e.length;c++){b=e[c];a=b.getAttribute("href");if(a.indexOf("#")==-1)continue;else{var d=a.match(i);if(d){a=d[1];b.TargetId=a;this.b.push(b)}else continue}}var g=f.getAttribute("data-persist")||"";this.d=g.toLowerCase()=="true"?1:0;this.m();this.n()},n:function(){var a=this.d?parseInt(this.h()):this.i();if(a>=this.b.length)a=0;this.j(this.b[a],0)}};var k=[],i=function(e){var b=false;function a(){if(b)return;b=true;setTimeout(e,4)}if(document.addEventListener)document.addEventListener("DOMContentLoaded",a,false);else if(document.attachEvent){try{var f=window.frameElement!=null}catch(g){}if(document.documentElement.doScroll&&!f){function c(){if(b)return;try{document.documentElement.doScroll("left");a()}catch(d){setTimeout(c,10)}}c()}document.attachEvent("onreadystatechange",function(){document.readyState==="complete"&&a()})}d(window,"load",a)},f=function(){for(var d=document.getElementsByTagName("ul"),c=0,e=d.length;c<e;c++)a(d[c],"tabs")&&k.push(new b(d[c],c))};i(f);return{}})()
+</script>
+
+    <style>
+      h1 {padding:8px 0px; margin:0;}
+      h2 {padding:4px 0px 0px 0px; margin:0;}
+      table.flags,td.flags {border: 1px solid #666; border-collapse: collapse; border-spacing: 0px;}
+      th.header {background-color: #FFE476; border: 1px solid #666; border-collapse: collapse; border-spacing: 0px; padding:5px 5px;}
+      td.flags-td {border: 1px solid #666; border-collapse: collapse; border-spacing: 0px; padding:3px 3px;}
+      ul.tabs{padding:14px 0 8px;margin:0;font-size:0;list-style-type:none;text-align:left;background:#DDDDE3;border:1px solid #CCC;border-bottom:none;border-radius:2px 2px 0 0}
+      ul.tabs li{display:inline;margin:0;margin-right:2px;font:normal 12px Verdana}
+      ul.tabs li a{text-decoration:none;position:relative;padding:8px 22px;color:#000;border-radius:3px 3px 0 0;outline:none;font-size:105%;}
+      ul.tabs li a:hover{text-decoration:underline;color:#000}
+      ul.tabs li.selected a{position:relative;top:0;font-weight:700;font-size:120%;background:#FFF;border:1px solid #AAA;border-bottom:1px solid #FFF;color:#000}
+      ul.tabs li.selected a:hover,ul.tabs li.selected a:hover{text-decoration:none}
+      div.tabcontents{border:1px solid #CCC;padding:6px 20px;border-top-color:#AAA;background-color:#FFF;border-radius:0 0 2px 2px}
+      tt,code,pre,li.code{font-family:Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif; color:#800;}
+      code{padding:0px; margin:0px;}
+      tt{ background-color: #FFFFD7;}
+      pre {margin:0 0; border:1px dashed #CCC;padding:12px;display: block;background-color: #F4F5F7;overflow: auto;white-space: pre;overflow: auto; width: auto;}
+      div.footer{font-size:70%;margin:10px 0 5px 0;text-align:center}
+    </style>
+  </head>
+  <body style="background:#F6F9FC; font-family:Arial, Helvetica, sans-serif;">
+    <div style="width: 80%; margin: 0 auto; padding: 2px 0 20px;">
+      <h1>BrainSuite Diffusion Pipeline</h1>
+      <ul class="tabs" data-persist="true">
+        <li><a href="#doc">Documentation</a></li>
+        <li><a href="#license">License</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#changelog">Changelog</a></li>
+      </ul>
+      <div class="tabcontents">
+
+
+	<div id="license">
+	  <h2>Copyright notice</h2><br/>
+      <pre><!-- LICENSE --></pre>
+    </div>
+
+   	<div id="about">
+      <h2>About BDP</h2><br/>
+	  <pre><!-- ABOUT -->
+________________________________________________________________________________
+ 
+Tabbed html theme 
+http://www.menucool.com/tabbed-content Free to use. Version 2013.7.6
+	  </pre>
+        </div>
+
+
+	<div id="doc">
+	  <p><b>BrainSuite Diffusion Pipeline (BDP)</b> enables fusion of diffusion and structural MRI information for advanced image and connectivity analysis. It provides various methods for distortion 
+correction, co-registration, diffusion modeling (DTI and ODF) and basic ROI-wise statistic. BDP is a very flexible command line tool and supports diverse diffusion data-acquisition and data-processing approaches.</p>
+	<p>It is <b>highly recommended</b> for users to go through description of all the flags which is described in the table below. Flags are braodly classified in sub-sections for easy parsing. For more information and updates, please see <a href="http://brainsuite.org/processing/diffusion/">http://brainsuite.org/processing/diffusion/</a>.</p>
+
+	<p>BDP is released under <strong><!-- LIC SHORT --></strong> (see license tab for details). Users can find details of their custom processing and full list of reference papers which should be cited in <tt>*.Summary.txt</tt> file. Please cite at least following papers if you use BDP in your own work.</p>
+	  <ul>
+	    <li><p>C Bhushan, JP Haldar, S Choi, AA Joshi, DW Shattuck, RM Leahy, <i>"Co-registration and distortion correction of diffusion and anatomical images based on inverse contrast normalization."</i> NeuroImage, (2015), DOI: <a href="http://dx.doi.org/10.1016/j.neuroimage.2015.03.050">10.1016/j.neuroimage.2015.03.050</a>.</li>
+	    <li><p>JH Kim, JP Haldar, Z-P Liang, S-K Song, <i>"Diffusion tensor imaging of mouse brain stem and cervical spinal cord"</i>, Journal of Neuroscience Methods, Vol. 176, Issue 2, Pages 186-191, (2009), DOI: <a href="http://dx.doi.org/10.1016/j.jneumeth.2008.09.005">10.1016/j.jneumeth.2008.09.005</a>.</p></li>
+	  </ul>
+
+<!-- USAGE AND FLAGS -->
+	</div>
+
+
+	<div id="changelog">
+	<h2>BDP Changelog</h2><br/>
+	  <pre><!-- CHANGELOG --></pre>
+	</div>
+
+    </div>
+      <!-- FOOTER -->
+    </div>
+
+  </body>
+</html>
