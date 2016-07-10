@@ -8,10 +8,8 @@ statistic. BDP is flexible and diverse tool which supports wide variety of
 diffusion datasets. For more information and detailed documentation, please 
 see BDP website: http://brainsuite.org/processing/diffusion/
 
-This is release 15c (31-Dec-2015) of BDP.
-
-Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi,
-           David W. Shattuck, and Richard M. Leahy
+Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar,
+           Anand A. Joshi,  David W. Shattuck, and Richard M. Leahy
 
 
 
@@ -29,10 +27,10 @@ to generate executables and packages. Both steps are performed from MATLAB
 command prompt.
 
 BDP requires working installations of following for building the binaries:
-   - MATLAB 2012a: http://www.mathworks.com/products/matlab/
+   - MATLAB 2015b: http://www.mathworks.com/products/matlab/
    - Image Processing Toolbox: http://www.mathworks.com/products/image/
    - MATLAB Compiler: http://www.mathworks.com/products/compiler/
-   - A supported C/C++ Compiler: http://www.mathworks.com/support/compilers/R2012a/win64.html
+   - A supported C/C++ Compiler: http://www.mathworks.com/support/compilers/R2015b/index.html
 
 First open MATLAB and navigate to the `<BDP>/packaging_tools` folder of the 
 source code. Then, Compile the c/mex files by running following on the MATLAB
@@ -45,9 +43,9 @@ generated Makefile in Linux and Mac to use clang instead of gcc.
 
 Finally, compile the MATLAB code and generate packages by running following:
 
->> CompileBrainSuiteDiffusionPipeline --package 14aRC1 --build 1234
+>> CompileBrainSuiteDiffusionPipeline --package 99aRC9 --build 9999
     
-where, `14aRC1` is the name of release and `1234` is four digit build number.
+where, `99aRC9` is the name of release and `9999` is four digit build number.
 This will generate relevant tarball/zip for distribution. Note that above step
 requires `mcc` command from MATLAB Compiler toolbox.
 

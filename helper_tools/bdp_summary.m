@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -29,7 +30,8 @@ citations = struct( ...
    'bhushan2015INVERSION', false, ...
    'bhushan2014InversionISMRM', false, ...
    'haldar2013', false, ...
-   'kim2009', false);
+   'kim2009', false, ...
+   'ozarslan2009', false);
 
 
 filecontents = {'BrainSuite Diffusion Pipeline: Processing Summary\n', ...
@@ -101,9 +103,10 @@ end
 % ODF/FRACT estimation
 if optionsStruct.estimate_odf_FRACT && optionsStruct.estimate_odf_FRT
    filecontents{end+1} = ['Orientation distribution functions' ...
-      ' (ODFs) were computed using  the Funk-Radon Transform and the Funk-Radon and Cosine Transform' ...
+      ' (ODFs) were computed using  the Funk-Radon Transform, the Funk-Radon and Cosine Transform' ...
       ' (FRACT) as described in [Haldar 2013].\n\n'];
    citations.haldar2013 = true;
+   citations.ozarslan2009 = true;
    
 elseif optionsStruct.estimate_odf_FRACT
    filecontents{end+1} = ['Orientation distribution functions' ...
@@ -117,6 +120,13 @@ elseif optionsStruct.estimate_odf_FRT
       ' (ODFs) were computed using the Funk-Radon Transform' ...
       ' implementation described in [Haldar 2013].\n\n'];
    citations.haldar2013 = true;
+end;
+
+%3DSHORE estimation
+if optionsStruct.estimate_odf_3DSHORE
+   filecontents{end+1} = ['Orientation distribution functions' ...
+      ' (ODFs) were computed using the 3D SHORE basis [Ozarslan 2009].\n\n'];
+   citations.ozarslan2009 = true;
 end
 
 
@@ -162,6 +172,14 @@ if citations.kim2009
       ' Z.-P. Liang, S.-K. Song, "Diffusion tensor imaging of mouse' ...
       ' brain stem and cervical spinal cord", Journal of Neuroscience ' ...
       'Methods, Volume 176, Issue 2, Pages 186-191, 2009\n\n'];
+end
+
+if citations.ozarslan2009
+   filecontents{end+1} = ['[Ozarslan 2009] E. Ozarslan, C. Koay,' ...
+      'T. M. Shepherd, S. J. Blackband, P. J. Basser, "Simple harmonic ' ...
+      'oscillator based reconstruction and estimation for three-dimensional' ...
+	  'q-space MRI", Joint Annual Meeting ISMRM-ESMRMB, Honolulu, Hawaii, USA ' ...
+      '2009, p. 1396\n\n'];
 end
 
 % linewrap

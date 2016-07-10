@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -565,8 +566,16 @@ if isempty(bdp_opts) || isempty(bdp_opts.dwi_mask_file)
       'purposes (and not for statistics computation).'], '\n'};
    fprintf(bdp_linewrap(msg)); drawnow update;
    
-   
-   [dwi_mask_file, dwi_mask_less_csf_file] = maskDWI(dwi, mskfile_base, bmat_file);
+   switch lower(bdp_opts.dwi_pseudo_masking_method)
+      case 'intensity'
+         masking_approach = 1;
+      case 'hist'
+         masking_approach = 2;
+      otherwise
+         error('BDP:FlagError', ['Invalid DWI masking method: %s \nValid '...
+            'options are: "hist" or "intensity".'], bdp_opts.dwi_pseudo_masking_method);
+   end
+   [dwi_mask_file, dwi_mask_less_csf_file] = maskDWI(dwi, mskfile_base, bmat_file, masking_approach);
    fprintf('Saved (pseudo) masks: %s\n', escape_filename(dwi_mask_file));
    
 else % user defined; only refine to remove CSF

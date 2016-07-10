@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -139,7 +140,8 @@ if opts.verbose, fmin_opts.Display='iter'; end
 
 INV_opts = opts;
 [INV_opts.cp_mask_indx, INV_opts.cp_col_index] = bspline_create_mask_index(Osize, spacing_comp, t_sz);
-INV_opts.penalty.const = INV_opts.penalty;
+INV_opts = rmfield(INV_opts, 'penalty');
+INV_opts.penalty.const = opts.penalty;
 [INV_opts.penalty.V, INV_opts.penalty.cp_ind, INV_opts.penalty.Q] = ...
    bspline_penalty_repeated_endpoint_metal_bending_operator(Osize, spacing_comp, error_res);
 

@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -39,11 +40,11 @@ if ~exist('separator', 'var')
 end
 
 if ischar(str)
-   strout = strjoin(linewrap(str, maxchars), separator);
+   strout = strjoin_KY(linewrap(str, maxchars), separator);
    
 elseif iscellstr(str)
    strout = cellfun(@(x) bdp_linewrap(x, maxchars, separator), str, 'UniformOutput', false);
-   strout = strjoin(strout, '');
+   strout = strjoin_KY(strout, '');
    
 else
    error('Input str must be string or cellstr.')

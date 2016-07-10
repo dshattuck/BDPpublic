@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -226,7 +227,7 @@ end
 
 
 function mcr_version = get_mcr_version()
-[major minor update] = mcrversion;
+[major, minor, update] = mcrversion();
 mcr_version = [num2str(major) '.' num2str(minor)];
 if update ~= 0
    mcr_version = [mcr_version '.' num2str(update)];
@@ -251,7 +252,7 @@ fot = fopen(filename, 'w');
 
 % add release name in readme part
 fin = fopen(fullfile('..', 'README.txt'), 'r');
-str_match = 'Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi,';
+str_match = 'Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar,';
 while ~feof(fin)
    tline = fgetl(fin);
    if strcmp(tline, str_match)

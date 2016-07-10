@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -78,7 +79,11 @@ if DEout.illposed_tensor_fit
       'check the outputs and be careful with the analysis of the estimated diffusion tensors.'];
    bdpPrintWarning('Ill-conditioned DT fit', warn_msg);
 end
-
+if ~DEout.single_shell
+     msg = 'The input diffusion data seems to have a non-single-shell q-space sampling pattern. DTI is a single-shell sampling based method and can give unexpected tensor results when used with differently sampled diffusion MRI data. Please be careful with interpretation and analysis of the outputs. This warning can be ignored if the input data was indeed sampled with single-shell acquisition.';
+     bdpPrintWarning('Inappropriate diffusion model selected:', msg);
+end;
+ 
 % load data and corresponding grid points
 [dataIn, ~, ~, ~, res_dwi, Tdwi] = get_original_grid_data(data_file_transformed);
 [~, X_target, Y_target, Z_target, res_target, T_target] = get_original_grid_data(target_file);

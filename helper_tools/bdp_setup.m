@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -81,6 +82,7 @@ bdp_options = struct( ...
    ...
    ... more registration options
    'rigid_similarity', 'bdp', ...
+   'dwi_pseudo_masking_method', 'hist', ...
    ...
    ... fieldmap correction
    'fieldmap_distortion_correction', false, ...
@@ -90,11 +92,13 @@ bdp_options = struct( ...
    'ignore_fmap_FOV_errors', false, ...
    'fieldmap_leastsq', true, ...
    ...
-   ... tensor/odf
-   'estimate_tensor', true, ...
+   ... tensor/FRT/FRACT/3DSHORE odf
+   'estimate_tensor', false, ...
    'estimate_odf_FRACT', false, ...
    'estimate_odf_FRT', false, ...
+   'estimate_odf_3DSHORE', false, ...
    'odf_lambda', 0.006, ...
+   'diffusion_time', 0, ...
    'diffusion_coord_outputs', false, ...
    'diffusion_coord_output_folder', [], ...
    'diffusion_modelling_mask', [], ... % mask filename in diffusion coordinate
@@ -146,7 +150,6 @@ if ismember('-d', lower_varargin) % old DICOM flag
 elseif ~(ismember(diffusion_data_flags, lower_varargin))
    error('BDP:MandatoryInputNotFound', bdp_linewrap(['Diffusion data is a mandatory input. --nii flag must '...
       'be used to define input diffusion data.']));
-   
 end
 
 %% check if BFC file & --no-structural-registration co-exists then Grab the BFC file & output file prefix
@@ -302,18 +305,33 @@ while iflag <= nflags
          
       case {'-kp','-pk'}
          bdp_options.clean_files = false;
-         bdp_options.pngout = true;
+         bdp_options.pngout = true;            
          
       case '--odf'
-         bdp_options.estimate_odf_FRACT = true;
-         bdp_options.estimate_odf_FRT = true;
+        error('BDP:FlagError', '--odf flag is not supported anymore. Please select the odf methods to run using method specific flags instead. Supported odf method flags : --frt and/or --fract and/or --3dshore.');
          
       case '--fract'
          bdp_options.estimate_odf_FRACT = true;
          
       case '--frt'
          bdp_options.estimate_odf_FRT = true;
-         
+      
+	  case '--3dshore'
+         bdp_options.estimate_odf_3DSHORE = true;
+     
+      case '--diffusion_time_ms'
+         if (iflag + 1 > nflags)
+            error('BDP:FlagError', 'Diffusion time in ms must be specified after --diffusion_time_ms.');
+         end
+         diffusion_time = str2double(flag_cell{iflag+1});
+         if isnan(diffusion_time)
+            error('BDP:FlagError', 'Diffusion time(ms) specified after --diffusion_time_ms flag must be numeric: %s',...
+               flag_cell{iflag+1});
+         else
+            bdp_options.diffusion_time = diffusion_time*10^-3;
+         end
+         iflag = iflag + 1;         
+		 
       case {'--tensor', '--tensors'}
          bdp_options.estimate_tensor = true;
          
@@ -604,6 +622,21 @@ while iflag <= nflags
                'that the following file exits:\n%s'], escape_filename(dwi_mask_file));
          end
          
+      case '--dwi-masking-method'
+         if (iflag+1 > nflags)
+            error('BDP:FlagError', ['--dwi-masking-method must be followed by a masking method. Possible '...
+               'options are: "hist" or "intensity".']);
+         else
+            valid_dwi_masking_methods = {'hist', 'intensity'};
+            if ismember(lower(flag_cell{iflag+1}), valid_dwi_masking_methods)
+               bdp_options.dwi_pseudo_masking_method = lower(flag_cell{iflag+1});
+            else
+               error('BDP:FlagError', ['Invalid --dwi-masking-method: %s \nValid '...
+                  'options are: "hist" or "intensity".'], flag_cell{iflag+1});
+            end
+            iflag = iflag + 1;
+         end
+         
       case {'-g', '--bvec'}
          if (iflag + 1 > nflags)
             error('BDP:FlagError','Gradient file flag specified but no gradient file provided.');
@@ -717,7 +750,7 @@ while iflag <= nflags
             error('BDP:UnknownFlag', [bdp_linewrap(['%s is not a valid flag. ' ...
                'For a complete list of flags with descriptions, run BDP with the flag --help. '...
                'Valid flags are:\n\n']) ...
-               ['\t' strjoin(bdp_list_flags(), '\n\t') '\n\n']], escape_filename(inpt));
+               ['\t' strjoin_KY(bdp_list_flags(), '\n\t') '\n\n']], escape_filename(inpt));
          end
    end
    
@@ -739,7 +772,7 @@ if bdp_options.fieldmap_distortion_correction && (bdp_options.fieldmap_leastsq &
 end
 
 % Set tensor calculation as default if no choice made
-if ~bdp_options.estimate_odf_FRACT && ~bdp_options.estimate_odf_FRT && ~bdp_options.estimate_tensor
+if ~bdp_options.estimate_odf_FRACT && ~bdp_options.estimate_odf_FRT && ~bdp_options.estimate_tensor && ~bdp_options.estimate_odf_3DSHORE
    fprintf(bdp_linewrap('Did not detect --FRT/--FRACT/--tensor. Using default setting of estimating tensors.\n'));
    bdp_options.estimate_tensor = true;
 end
@@ -764,6 +797,17 @@ if ~bdp_options.no_structural_registration
    bdp_options.bfc_file = bfc_file;
 end
 
+if bdp_options.estimate_odf_3DSHORE
+    % Check if diffusion time was set by the user for 3d shore.
+    if bdp_options.diffusion_time == 0,
+         err_msg = ['BDP can not find diffusion time flag or it is set to 0. Please make sure that you used '...
+           '--diffusion_time_ms flag followed by the diffusion time (in milliseconds) of the DWI dataset.'...
+           ' 3DSHORE based ODFs require diffusion time as a mandatory input parameter.'...
+           'You can find the command used in BDP summary file (<fileprefix>.BDPSummary.txt).'];
+         error('BDP:MandatoryInputNotFound', bdp_linewrap(err_msg));
+    end;
+end;
+ 
 if ~bdp_options.generate_only_stats && ~bdp_options.only_transform_data
    
    % Generate b-matrices file
@@ -864,8 +908,6 @@ else
    bdp_options.diffusion_modelling_mask = fullfile(fileparts(bdp_options.file_base_name), ...
       suffix_filename([nm ext], bdp_options.Diffusion_coord_suffix));
 end
-
-
 
 if bdp_options.diffusion_coord_outputs
    if bdp_options.no_structural_registration
@@ -984,7 +1026,7 @@ not_allowed = {'--t1-mask', '--transform-diffusion-volume', '--transform-t1-volu
    '--custom-diffusion-label', '--custom-t1-label', '--custom-label-xml'};
 if any(ismember(not_allowed, temp))
    error('BDP:FlagError', [bdp_linewrap(['--no-structural-registration can not be combined with following flags:\n\n']) ...
-      ['\t' strjoin(not_allowed, '\n\t') '\n\n']]);
+      ['\t' strjoin_KY(not_allowed, '\n\t') '\n\n']]);
 end
 
 end

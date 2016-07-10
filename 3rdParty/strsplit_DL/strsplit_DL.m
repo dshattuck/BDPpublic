@@ -1,4 +1,4 @@
-function terms = strsplit(s, delimiter)
+function terms = strsplit_DL(s, delimiter)
 %STRSPLIT Splits a string into multiple terms
 %
 %   terms = strsplit(s)

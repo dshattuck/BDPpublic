@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -38,6 +39,7 @@ function out = checkDiffusionEncodingScheme(varargin)
 %
 
 bval_thresh = 45; % ratio of 900 to 20
+bval_thresh_nz = 1.5; % 1500/1000
 
 if nargin==1 || (nargin==2 && numel(varargin{2})==1 && isnumeric(varargin{2}))
    if ischar(varargin{1})
@@ -116,6 +118,15 @@ else
    end
 end
 
+% Find the range of the remaining b-values
+bval_nzero = bval(out.zero_bval_mask==0);
+b_low = min(bval_nzero);
+b_high = max(bval_nzero);
+if (b_high/b_low)>=bval_thresh_nz 
+   out.single_shell =0;
+else
+   out.single_shell =1;
+end;
 
 end
 

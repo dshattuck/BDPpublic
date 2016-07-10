@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -58,7 +59,7 @@ end
 unq_intensities = unique(data.img(:));
 if length(unq_intensities)<=2
    mask = data;
-
+   
    if length(unq_intensities)==2
       threshold = min(unq_intensities);
    elseif length(unq_intensities)==1
@@ -119,18 +120,18 @@ x = smooth_moving(double(I_s(1:d:end)), 31);
 x_diff = diff(x);
 threshold_smooth = find_thrshold_MASK_HEAD_PSEUDO(x, x_diff, 0.85);
 mask_smooth = data_smooth>threshold_smooth;
-   
-   % padd zeros to avoid weird behaviour at boundaries
+
+% padd zeros to avoid weird behaviour at boundaries
 pad_size = 4;
 mask_smooth_pad = padarray(mask_smooth, [1 1 1]*pad_size);
-   
-   % remove isolated pixels
+
+% remove isolated pixels
 msk_tmp = imerode(mask_smooth_pad>0, se3)>0;
 msk_tmp = largest_connected_component_MASK_HEAD_PSEUDO(msk_tmp, 6);
 msk_tmp = imdilate(msk_tmp>0, se3)>0;
 msk_tmp = msk_tmp & mask_smooth_pad>0;
 msk_tmp = imfill(msk_tmp>0, 'holes');
-   
+
 % Try to get back small thin pieces lost during imerode
 msk_tmp = imdilate(msk_tmp>0, se2)>0 & (mask_smooth_pad>0);
 msk_tmp = largest_connected_component_MASK_HEAD_PSEUDO(msk_tmp, 6);
@@ -138,22 +139,22 @@ mask_smooth = msk_tmp(pad_size+1:data_size(1)+pad_size, pad_size+1:data_size(2)+
 clear msk_tmp mask_smooth_pad
 
 mask = data;
-if exist('if_aggresive', 'var') && if_aggresive   
+if exist('if_aggresive', 'var') && if_aggresive
    I_s = sort(data.img(mask_smooth), 'ascend');
    threshold = max(I_s(floor(length(I_s)*0.055)), threshold_smooth/1200);
    mask.img = data.img>=threshold;
-      
-      % padd zeros to avoid weird behaviour at boundaries
+   
+   % padd zeros to avoid weird behaviour at boundaries
    mask_pad = padarray(mask.img, [1 1 1]*pad_size);
    mask_pad_fill = imfill(mask_pad>0, 'holes');
-      
-      % remove isolated pixels
+   
+   % remove isolated pixels
    msk_tmp = imerode(mask_pad>0, se3)>0;
    msk_tmp = largest_connected_component_MASK_HEAD_PSEUDO(msk_tmp, 6);
    msk_tmp = imdilate(msk_tmp>0, se4)>0;
    msk_tmp = msk_tmp & mask_pad>0;
    msk_tmp = imfill(msk_tmp>0, 'holes');
-      
+   
    % check if we are missing too many voxels - to avoid cases when aggressive thresholding only
    % gets ventricles in T2-weighted images
    [bb_1, bb_2, bb_3] = find_bounding_box(msk_tmp);
@@ -161,24 +162,24 @@ if exist('if_aggresive', 'var') && if_aggresive
    if vol_ratio<0.3
       threshold = find_thrshold_MASK_HEAD_PSEUDO(x, x_diff, 0.65); % relax a little bit
       mask.img = data_orig.img>=(threshold/1200);
-   
-   % padd zeros to avoid weird behaviour at boundaries
+      
+      % padd zeros to avoid weird behaviour at boundaries
       mask_pad = padarray(mask.img, [1 1 1]*pad_size);
-
-   % remove isolated pixels
+      
+      % remove isolated pixels
       msk_tmp = imerode(mask_pad>0, se2)>0;
       msk_tmp = largest_connected_component_MASK_HEAD_PSEUDO(msk_tmp, 6);
       msk_tmp = imdilate(msk_tmp>0, se2)>0;
       msk_tmp = msk_tmp & mask_pad>0;
-end
-
-
-% close holes only deep inside
-   msk_tmp = imdilate(msk_tmp>0, se1) & mask_pad_fill>0;   
+   end
+   
+   
+   % close holes only deep inside
+   msk_tmp = imdilate(msk_tmp>0, se1) & mask_pad_fill>0;
    msk_tmp = imfill(msk_tmp>0, 'holes');
-   msk_tmp = imdilate(msk_tmp>0, se1) & mask_pad_fill>0;   
+   msk_tmp = imdilate(msk_tmp>0, se1) & mask_pad_fill>0;
    msk_tmp = imfill(msk_tmp>0, 'holes');
-
+   
    mask.img =  msk_tmp(pad_size+1:data_size(1)+pad_size, pad_size+1:data_size(2)+pad_size, pad_size+1:data_size(3)+pad_size);
    clear msk_tmp mask_pad_fill mask_pad
 else
@@ -190,7 +191,7 @@ end
 mask.img = uint8(mask.img>0)*255;
 
 if exist('output_mask_file', 'var')
-   mask.hdr.dime.scl_slope = 0;   
+   mask.hdr.dime.scl_slope = 0;
    save_untouch_nii_gz(mask, output_mask_file, 2);
 end
 
@@ -226,7 +227,7 @@ if ~isempty(ind)
    threshold = x(ind+499);
    
 else % flat 10th percentile as threshold
-   threshold = x(floor(length(x)/10)); 
+   threshold = x(floor(length(x)/10));
 end
 end
 

@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -51,31 +52,45 @@ try
          affinematrix_file = [opts.file_base_name '.bfc' opts.Diffusion_coord_suffix '.rigid_registration_result.mat'];
       end
       
-      if opts.estimate_odf_FRT || opts.estimate_odf_FRACT
+      % Multishell data support
+     if opts.estimate_odf_3DSHORE           
+         bdpPrintSectionHeader('Estimating 3DSHORE Diffusion ODFs');
+         if ~opts.no_structural_registration
+            estimate_3DSHORE_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
+         end
+
+         if opts.diffusion_coord_outputs || opts.no_structural_registration
+            uopts = opts;
+            uopts.SHORE_out_dir = fullfile(opts.diffusion_coord_output_folder, '3DSHORE');
+            estimate_3DSHORE_slice(dwi_corr_file, bmat_file, uopts);
+         end
+     end
+     
+     if opts.estimate_odf_FRT || opts.estimate_odf_FRACT
          bdpPrintSectionHeader('Estimating Diffusion ODFs');
-         if ~opts.no_structural_registration
-            estimate_SH_FRT_FRACT_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
-         end
-         
-         if opts.diffusion_coord_outputs || opts.no_structural_registration
-            uopts = opts;
-            uopts.FRT_out_dir = fullfile(opts.diffusion_coord_output_folder, 'FRT');
-            uopts.FRACT_out_dir = fullfile(opts.diffusion_coord_output_folder, 'FRACT');
-            estimate_SH_FRT_FRACT(dwi_corr_file, bmat_file, uopts);
-         end
+          if ~opts.no_structural_registration
+              estimate_SH_FRT_FRACT_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
+          end
+
+          if opts.diffusion_coord_outputs || opts.no_structural_registration
+              uopts = opts;
+              uopts.FRT_out_dir = fullfile(opts.diffusion_coord_output_folder, 'FRT');
+              uopts.FRACT_out_dir = fullfile(opts.diffusion_coord_output_folder, 'FRACT');
+              estimate_SH_FRT_FRACT(dwi_corr_file, bmat_file, uopts);
+          end
       end
-      
+
       if opts.estimate_tensor
-         bdpPrintSectionHeader('Estimating Diffusion Tensors');
-         if ~opts.no_structural_registration
-            estimate_tensors_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
-         end
-         
-         if opts.diffusion_coord_outputs || opts.no_structural_registration
-            uopts = opts;
-            uopts.tensor_out_dir = opts.diffusion_coord_output_folder;
-            estimate_tensors(dwi_corr_file, bmat_file, uopts);
-         end
+          bdpPrintSectionHeader('Estimating Diffusion Tensors');
+          if ~opts.no_structural_registration
+              estimate_tensors_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
+          end
+
+          if opts.diffusion_coord_outputs || opts.no_structural_registration
+              uopts = opts;
+              uopts.tensor_out_dir = opts.diffusion_coord_output_folder;
+              estimate_tensors(dwi_corr_file, bmat_file, uopts);
+          end
       end
    end
    
@@ -90,8 +105,7 @@ try
             
          elseif ~(opts.fieldmap_distortion_correction || opts.registration_distortion_correction) ...
                && exist([opts.file_base_name opts.dwi_fname_suffix '.RAS.nii.gz'], 'file')
-            dwi_corr_file = [opts.file_base_name opts.dwi_fname_suffix '.RAS.nii.gz'];
-            
+            dwi_corr_file = [opts.file_base_name opts.dwi_fname_suffix '.RAS.nii.gz'];     
          else
             err_msg = ['BDP can not find the diffusion file written by it. Please make sure that you ran '...
                'BDP on fileprefix: ' escape_filename(opts.file_base_name) '\nIf you did run BDP previously, '...

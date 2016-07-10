@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -251,6 +252,37 @@ if opts.estimate_odf_FRT
          [fileBaseName(opts.bfc_file_base) '.FRT' opts.Diffusion_coord_suffix '.bst']);
       bsts = blank_struct;
       bsts.SHC = fullfile('FRT', [dwi_filebase '.SH.FRT.odf']);
+      bsts.volume = struct_file_D;
+      bsts.overlay = [dwi_filebase '.eig.nii.gz'];
+      bsts.mask = T1_mask_D;
+      bsts.label = svreg_label_D;
+      bsts.labeltext = xml_label_D;      
+      writeBST(bsts, bst_fname)
+      bstfnames{bcnt} = bst_fname;
+      bcnt = bcnt +1;
+   end
+end
+
+% 3DSHORE
+if opts.estimate_odf_3DSHORE
+   bst_fname = [opts.file_base_name '.3DSHORE' opts.mprage_coord_suffix '.bst'];
+   bsts = blank_struct;
+   bsts.SHC = fullfile('FRT', [dwi_filebase '.SH.3DSHORE' opts.mprage_coord_suffix '.odf']);
+   bsts.volume = struct_file;
+   bsts.overlay = [dwi_filebase '.FA.color' opts.mprage_coord_suffix '.nii.gz'];
+   bsts.mask = T1_mask;
+   bsts.label = svreg_label;
+   bsts.labeltext = xml_label;
+   bsts.surface = R_surf;
+   writeBST(bsts, bst_fname)
+   bstfnames{bcnt} = bst_fname;
+   bcnt = bcnt +1;
+   
+   if opts.diffusion_coord_outputs
+      bst_fname = fullfile(opts.diffusion_coord_output_folder, ...
+         [fileBaseName(opts.bfc_file_base) '.3DSHORE' opts.Diffusion_coord_suffix '.bst']);
+      bsts = blank_struct;
+      bsts.SHC = fullfile('3DSHORE', [dwi_filebase '.SH.3DSHORE.odf']);
       bsts.volume = struct_file_D;
       bsts.overlay = [dwi_filebase '.eig.nii.gz'];
       bsts.mask = T1_mask_D;

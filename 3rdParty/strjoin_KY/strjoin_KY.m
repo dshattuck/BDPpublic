@@ -1,4 +1,4 @@
-function output = strjoin(input, separator)
+function output = strjoin_KY(input, separator)
 %STRJOIN Concatenate an array into a single string.
 %
 %     S = strjoin(C)

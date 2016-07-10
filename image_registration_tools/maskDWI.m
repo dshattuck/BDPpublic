@@ -1,10 +1,11 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2015 The Regents of the University of California and
+% Copyright (C) 2016 The Regents of the University of California and
 % the University of Southern California
 % 
-% Created by Chitresh Bhushan, Justin P. Haldar, Anand A. Joshi, David W. Shattuck, and Richard M. Leahy
+% Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
+%            David W. Shattuck, and Richard M. Leahy
 % 
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -24,37 +25,43 @@
 
 function [mask_file, mask_less_csf_file, mask_bfc] = maskDWI(DWI, outfile_base, varargin)
 % Tries to estimate mask from 4D DWI volume. DWI should NOT be (severely) affected by motion. 
-% B0 drift can also affect quality of result. 
+% B0 drift and severe bias-field/non-uniformity can also affect quality of result. 
 %
 % Usage: 
 %   [mask, mask_less_csf, mask_bfc] = maskDWI(DWI, out_file_base, bmat_file)
-%   [mask, mask_less_csf, mask_bfc] = maskDWI(DWI, out_file_base, bmat_file, use_hist)
+%   [mask, mask_less_csf, mask_bfc] = maskDWI(DWI, out_file_base, bmat_file, masking_approach)
 %   [mask, mask_less_csf, mask_bfc] = maskDWI(DWI, out_file_base, bvec_file, bval_file)
-%   [mask, mask_less_csf, mask_bfc] = maskDWI(DWI, out_file_base, bvec_file, bval_file, use_hist)
+%   [mask, mask_less_csf, mask_bfc] = maskDWI(DWI, out_file_base, bvec_file, bval_file, masking_approach)
 %
-% use_hist is a boolean flag which controls the masking method used for mean b=0 image. 
-%
+% masking_approach is a numeric flag which defines the masking approach: 
+%   1  -  'intensity'; Heuristic approach based on intensities of b=0 image with mask_head_pseudo(). This is
+%         the oldest method implemented in BDP - still works best for some datasets.
+%   2  -  'hist'; Using peaks and valleys of the intesity histogram of (b0 + meanDWI) image. This makes
+%         direct intuitive sense, but fails when data is already partially masked, like that in
+%         HCP data.
+%   3  -  (Not implemented) Spectral clustering based segmentation should be robust to a lot of
+%         issues?
 
 
 nbins = 300; 
 parzen_width = 40;
 nthreads = 6;
 valley_slp_thresh = 20; 
-use_hist = true; % use histogram based masking as default
+masking_approach = 2; % use histogram based masking as default
 
 % check input options
 if nargin==3
    de_out = checkDiffusionEncodingScheme(varargin{1});
 elseif nargin==4
    if isscalar(varargin{2}) && ~ischar(varargin{2})
-      use_hist = varargin{2};
+      masking_approach = varargin{2};
       de_out = checkDiffusionEncodingScheme(varargin{1});
    else
       de_out = checkDiffusionEncodingScheme(varargin{1}, varargin{2});
    end
 elseif nargin==5
    de_out = checkDiffusionEncodingScheme(varargin{1}, varargin{2});
-   use_hist = varargin{3};
+   masking_approach = varargin{3};
 else
    error('Incorrect number of inputs. Check usage.')
 end
@@ -93,14 +100,18 @@ end
 clear data
 
 if ~isempty(b0.img) && ~isempty(dwi_mean)
-   if use_hist
-      b0.img = normalize_intensity(b0.img, [3 97]);
-      dwi_mean.img = normalize_intensity(dwi_mean.img, [3 97]);
-      temp = b0;
-      temp.img = (b0.img + dwi_mean.img)/2;
-      mask = maskHeadPseudoHist(temp, true);
-   else
-      mask = mask_head_pseudo(b0, true);
+   switch masking_approach
+      case 1
+         mask = mask_head_pseudo(b0, true);
+         
+      case 2
+         b0.img = normalize_intensity(b0.img, [3 97]);
+         dwi_mean.img = normalize_intensity(dwi_mean.img, [3 97]);
+         temp = b0;
+         temp.img = (b0.img + dwi_mean.img)/2;
+         mask = maskHeadPseudoHist(temp, true);
+      otherwise
+         error('Unknown/unimplemented masking_approach: %d', masking_approach);
    end
    [mask_dwi, dwi_thresh] = maskHeadPseudoHist(dwi_mean, true); % aggresive DWI masking
    
