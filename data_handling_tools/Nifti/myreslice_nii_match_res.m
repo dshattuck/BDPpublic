@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -47,6 +47,7 @@ function [vol_reslice, nii] = myreslice_nii_match_res(vol, method, X_grid, Y_gri
 
 
 [data_orig, X_vol, Y_vol, Z_vol, ~, Tvol, vol] = get_original_grid_data(vol);
+data_orig = double(data_orig);
 
 if ndims(data_orig)>3
    error('vol must be a 3D volume');

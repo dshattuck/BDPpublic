@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -260,7 +260,9 @@ end
 mov_nii = load_untouch_nii_gz(moving_filename_3D, true, workDir);
 static_nii = load_untouch_nii_gz(static_filename_3D, true, workDir);
 [dm, xm, ym, zm, resm] = get_original_grid_data(opts.moving_mask);
+dm = double(dm);
 [ds, xs, ys, zs, ress] = get_original_grid_data(opts.static_mask);
+ds = double(ds);
 
 % override grid to change it to be along acquisition axis
 if opts.dof<=3   

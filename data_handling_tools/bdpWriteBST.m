@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -267,9 +267,9 @@ end
 if opts.estimate_odf_3DSHORE
    bst_fname = [opts.file_base_name '.3DSHORE' opts.mprage_coord_suffix '.bst'];
    bsts = blank_struct;
-   bsts.SHC = fullfile('FRT', [dwi_filebase '.SH.3DSHORE' opts.mprage_coord_suffix '.odf']);
+   bsts.SHC = fullfile('3DSHORE', [dwi_filebase '.SH.3DSHORE' opts.mprage_coord_suffix '.odf']);
    bsts.volume = struct_file;
-   bsts.overlay = [dwi_filebase '.FA.color' opts.mprage_coord_suffix '.nii.gz'];
+   %bsts.overlay = [dwi_filebase '.FA.color' opts.mprage_coord_suffix '.nii.gz'];
    bsts.mask = T1_mask;
    bsts.label = svreg_label;
    bsts.labeltext = xml_label;
@@ -284,7 +284,7 @@ if opts.estimate_odf_3DSHORE
       bsts = blank_struct;
       bsts.SHC = fullfile('3DSHORE', [dwi_filebase '.SH.3DSHORE.odf']);
       bsts.volume = struct_file_D;
-      bsts.overlay = [dwi_filebase '.eig.nii.gz'];
+      %bsts.overlay = [dwi_filebase '.eig.nii.gz'];
       bsts.mask = T1_mask_D;
       bsts.label = svreg_label_D;
       bsts.labeltext = xml_label_D;      
@@ -292,6 +292,37 @@ if opts.estimate_odf_3DSHORE
       bstfnames{bcnt} = bst_fname;
       bcnt = bcnt +1;
    end
+end   
+
+% GQI
+if opts.estimate_odf_GQI
+   bst_fname = [opts.file_base_name '.GQI' opts.mprage_coord_suffix '.bst'];
+   bsts = blank_struct;
+   bsts.SHC = fullfile('GQI', [dwi_filebase '.SH.GQI' opts.mprage_coord_suffix '.odf']);
+   bsts.volume = struct_file;
+   %bsts.overlay = [dwi_filebase '.FA.color' opts.mprage_coord_suffix '.nii.gz'];
+   bsts.mask = T1_mask;
+   bsts.label = svreg_label;
+   bsts.labeltext = xml_label;
+   bsts.surface = R_surf;
+   writeBST(bsts, bst_fname)
+   bstfnames{bcnt} = bst_fname;
+   bcnt = bcnt +1;
+   
+   if opts.diffusion_coord_outputs
+      bst_fname = fullfile(opts.diffusion_coord_output_folder, ...
+         [fileBaseName(opts.bfc_file_base) '.GQI' opts.Diffusion_coord_suffix '.bst']);
+      bsts = blank_struct;
+      bsts.SHC = fullfile('GQI', [dwi_filebase '.SH.GQI.odf']);
+      bsts.volume = struct_file_D;
+      %bsts.overlay = [dwi_filebase '.eig.nii.gz'];
+      bsts.mask = T1_mask_D;
+      bsts.label = svreg_label_D;
+      bsts.labeltext = xml_label_D;      
+      writeBST(bsts, bst_fname)
+      bstfnames{bcnt} = bst_fname;
+      bcnt = bcnt +1;
+   end   
 end
 
 if ~isempty(bstfnames)

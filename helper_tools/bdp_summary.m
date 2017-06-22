@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -31,7 +31,8 @@ citations = struct( ...
    'bhushan2014InversionISMRM', false, ...
    'haldar2013', false, ...
    'kim2009', false, ...
-   'ozarslan2009', false);
+   'ozarslan2009', false, ...
+   'yeh2010', false);
 
 
 filecontents = {'BrainSuite Diffusion Pipeline: Processing Summary\n', ...
@@ -129,6 +130,12 @@ if optionsStruct.estimate_odf_3DSHORE
    citations.ozarslan2009 = true;
 end
 
+%GQI estimation
+if optionsStruct.estimate_odf_GQI
+   filecontents{end+1} = ['Orientation distribution functions' ...
+      ' (ODFs) were computed using the generalized q-sampling imaging method described in [Yeh 2010].\n\n'];
+   citations.yeh2010 = true;
+end
 
 
 % %%%%%%%%%%
@@ -178,8 +185,15 @@ if citations.ozarslan2009
    filecontents{end+1} = ['[Ozarslan 2009] E. Ozarslan, C. Koay,' ...
       'T. M. Shepherd, S. J. Blackband, P. J. Basser, "Simple harmonic ' ...
       'oscillator based reconstruction and estimation for three-dimensional' ...
-	  'q-space MRI", Joint Annual Meeting ISMRM-ESMRMB, Honolulu, Hawaii, USA ' ...
-      '2009, p. 1396\n\n'];
+	  'q-space MRI", Joint Annual Meeting ISMRM-ESMRMB, Honolulu, Hawaii, USA, ' ...
+      'Page 1396, 2009\n\n'];
+end
+
+if citations.yeh2010
+   filecontents{end+1} = ['[Yeh 2010] Fang-Cheng Yeh, Van Jay Wedeen,' ...
+	  'and Wen-Yih Isaac Tseng, "Generalized q-Sampling Imaging", ' ...
+      'IEEE Transactions on medical imaging, Volume 29, No. 9,' ...
+	  'Pages 1626-1635, 2010\n\n'];
 end
 
 % linewrap

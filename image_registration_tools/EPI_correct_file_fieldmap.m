@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -125,7 +125,7 @@ if length(sz)<4
 end
 
 epi_out = epi_in;
-epi_out.img = zeros(sz);
+epi_out.img = epi_out.img.*0;
 
 cpb = ConsoleProgressBar(); % Set progress bar parameters
 cpb.setMinimum(1); cpb.setMaximum(sz(4)); cpb.start();
@@ -144,7 +144,7 @@ if options.leastsq_sol
    msg = {'\n', ['Correcting EPI (diffusion) images for distortion using Least Square formulation...']};
    fprintf(bdp_linewrap(msg));
    
-   epi_lsqr_corr = zeros(sz([1 2 4 3]));
+   epi_lsqr_corr = permute(epi_in.img,[1 2 4 3]).*0;
    cpb = ConsoleProgressBar(); % Set progress bar parameters
    cpb.setMinimum(1); cpb.setMaximum(sz(3)); cpb.start();
    phase_dir_ind = ones(sz(4),1);

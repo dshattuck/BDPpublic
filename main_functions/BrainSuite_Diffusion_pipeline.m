@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -50,9 +50,12 @@ try
       else
          [dwi_corr_file, bmat_file] = coregister_diffusion_mprage_pipeline(opts);
          affinematrix_file = [opts.file_base_name '.bfc' opts.Diffusion_coord_suffix '.rigid_registration_result.mat'];
+         
+         % save dwi fov mask      
+         save_dwi_fov_mask(dwi_corr_file, opts);
       end
       
-      % Multishell data support
+      % Multishell and custom sampling scheme support
      if opts.estimate_odf_3DSHORE           
          bdpPrintSectionHeader('Estimating 3DSHORE Diffusion ODFs');
          if ~opts.no_structural_registration
@@ -65,7 +68,20 @@ try
             estimate_3DSHORE_slice(dwi_corr_file, bmat_file, uopts);
          end
      end
-     
+     % Multishell and custom sampling scheme support
+     if opts.estimate_odf_GQI           
+         bdpPrintSectionHeader('Estimating GQI Diffusion ODFs');
+         if ~opts.no_structural_registration
+            estimate_GQI_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
+         end
+
+         if opts.diffusion_coord_outputs || opts.no_structural_registration
+            uopts = opts;
+            uopts.GQI_out_dir = fullfile(opts.diffusion_coord_output_folder, 'GQI');
+            estimate_GQI_slice(dwi_corr_file, bmat_file, uopts);
+         end
+     end
+	 
      if opts.estimate_odf_FRT || opts.estimate_odf_FRACT
          bdpPrintSectionHeader('Estimating Diffusion ODFs');
           if ~opts.no_structural_registration
@@ -97,6 +113,7 @@ try
    % rigid transform data, if required
    transform_data_rigid(opts);
    
+  
    if opts.generate_stats
       if ~exist('dwi_corr_file', 'var')
          if (opts.fieldmap_distortion_correction || opts.registration_distortion_correction) ...

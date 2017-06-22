@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -45,7 +45,9 @@ if length(res)==1
 end
 
 [vol1, X_vol1, Y_vol1, Z_vol1, res1, T1] = get_original_grid_data(v1);
+vol1 = double(vol1);
 [vol2, X_vol2, Y_vol2, Z_vol2, res2, T2] = get_original_grid_data(v2);
+vol2 = double(vol2);
 
 % Find the bounding box
 [x_grid, y_grid, z_grid] = ndgrid( min([X_vol1(:); X_vol2(:)]) : max([X_vol1(:); X_vol2(:)]), ...

@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -39,7 +39,7 @@ while length(fileName)>=4 && ( ...
       strcmpi(fileName(end-3:end), '.hdr') || strcmpi(fileName(end-3:end), '.dfs') ||...
       strcmpi(fileName(end-3:end), '.dfc') || strcmpi(fileName(end-3:end), '.txt') ||...
       strcmpi(fileName(end-3:end), '.eig') || strcmpi(fileName(end-3:end), '.ext') ||...
-      strcmpi(fileName(end-3:end), '.gii'));
+      strcmpi(fileName(end-3:end), '.gii') || strcmpi(fileName(end-3:end), '.png'));
    
    ext = [fileName(end-3:end) ext];
    fileName = fileName(1:end-4);

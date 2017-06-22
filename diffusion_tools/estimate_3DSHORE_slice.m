@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -101,7 +101,7 @@ temp3.hdr.dime.dim(1) = 3;
 temp3.hdr.dime.dim(5) = 1;
 
 % Find diffusion encoding direction (same as largest eigen vector of bMatrices)
-ind = find(~DEout.zero_bval_mask);
+ind = 1:nDir; %find(~DEout.zero_bval_mask);
 q = zeros(numel(ind),3);
 del_t = opt.diffusion_time;
 for i = 1:numel(ind)

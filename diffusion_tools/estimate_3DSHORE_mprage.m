@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -78,7 +78,8 @@ if opt.estimate_odf_3DSHORE && ~exist(opt.SHORE_out_dir, 'dir'), mkdir(opt.SHORE
 % Apply the rigid transform to header of dwi file
 load(affinematrixfile);
 data_file_transformed = fullfile(workdir, [Random_String(15) '.nii.gz']);
-affine_transform_nii(data_file, M_world, origin, data_file_transformed);
+[~,Tnew] = affine_transform_nii(data_file, M_world, origin, data_file_transformed);
+clear Tnew;
 
 % load bmatrices
 if ischar(bMatrices)
@@ -107,7 +108,7 @@ end
 
 % Find diffusion encoding direction (same as largest eigen vector of bMatrices)
 DEout = checkDiffusionEncodingScheme(bMatrices, opt.bval_ratio_threshold);
-ind = find(~DEout.zero_bval_mask);
+ind = 1:nDir; %find(~DEout.zero_bval_mask);
 q = zeros(numel(ind),3);
 del_t = opt.diffusion_time;
 for i = 1:numel(ind)
@@ -228,7 +229,7 @@ cpb.stop();
 fprintf('\n');
 clear dwimages b0mean
 
-shore_fid = fopen([SHORE_output_file_base '.SH.3DSHORE.odf'], 'w');
+shore_fid = fopen([SHORE_output_file_base '.SH.3DSHORE' opt.mprage_coord_suffix '.odf'], 'w');
 
 disp('Writing 3DSHORE ODF files to disk...')
 temp3.img = zeros(target_vol_size);

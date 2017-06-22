@@ -1,3 +1,9 @@
+v17a (2017-06-09, Build #0072)
+   * Added GQI based ODF estimation (--GQI).
+   * Optimized BDP's memory usage. 
+   * BDP now saves the DWI FOV mask in T1 coordinates.
+   * Improved checks for sform matrix.
+
 v16a (2016-07-10, Build #0069)
    * Added 3DSHORE based ODF estimation.
    * Users can provide the specific ODF method to use (--FRT,--FRACT,--3DSHORE). Removed support for --odf flag.

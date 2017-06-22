@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -80,7 +80,8 @@ if opt.estimate_odf_FRACT && ~exist(opt.FRACT_out_dir, 'dir'), mkdir(opt.FRACT_o
 % Apply the rigid transform to header of dwi file
 load(affinematrixfile);
 data_file_transformed = fullfile(workdir, [Random_String(15) '.nii.gz']);
-affine_transform_nii(data_file, M_world, origin, data_file_transformed);
+[~,Tnew] = affine_transform_nii(data_file, M_world, origin, data_file_transformed);
+clear Tnew;
 
 % load bmatrices
 if ischar(bMatrices)

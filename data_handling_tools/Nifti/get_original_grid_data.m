@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -32,6 +32,9 @@ function [data, X_vol, Y_vol, Z_vol, res, Tvol, vol] = get_original_grid_data(vo
 %  get_grid_data.m
 %
 
+min_res = 0.001; % minimum expected resolution, in mm, along any dim
+zero_thresh = 0.05; % max abs value which is considered as good as zero
+
 if ischar(vol)
    vol = load_untouch_nii_gz(vol, true);
 elseif ~isfield(vol,'untouch') || vol.untouch ~= 1
@@ -48,14 +51,35 @@ Tvol(1,:)= vol.hdr.hist.srow_x(1:4);
 Tvol(2,:)= vol.hdr.hist.srow_y(1:4);
 Tvol(3,:)= vol.hdr.hist.srow_z(1:4);
 
-if isequal(round(Tvol(1:3,1:3)), zeros(3,3))
-   error(['sform seems to a zero matrix in file %s. This is not supported. You can try using '...
+% Check if Tvol is a ~zero matrix
+if sum(abs(vect(Tvol(1:3,1:3))) < zero_thresh) == 9 
+   error(['sform seems to be approximately a zero matrix in file %s. This is not supported - please recheck the header. You can try using '...
       'add_sform.m first, if the file has valid q-form matrix.'], [fileBaseName(vol.fileprefix) '.nii']);
 end
 
-res = abs(vol.hdr.dime.pixdim(2:4)); % resolution. Some software uses negative pixdims to represent a spatial flip
-data = double(vol.img); % convert to double
 
+% Check if even one of the resoultion is ~0
+res = abs(vol.hdr.dime.pixdim(2:4)); % resolution. Some software uses negative pixdims to represent a spatial flip
+if sum(res < min_res) > 0
+   error(['The resolution information in pixdim seems to be close to zero (atleast in one of the dimension) in file %s. This is not unlikely and not supported - please recheck the header. You can try using '...
+      'add_sform.m first, if the file has valid q-form matrix.'], [fileBaseName(vol.fileprefix) '.nii']);  
+end
+
+Mrest = Tvol(1:3, 1:3)*diag(1./res); % Get only rotation part of the matrix (remove effect of resolution); Mrest can be proper/improper rotation matrix
+eval = eig(Mrest);
+if sum(abs(eval(:)) < zero_thresh) > 0  % eval can be -ve or complex, but ignoring sign they should be roots of unity if Mrest is rotation matrix 
+   error(['The resolution information in sform seems to be close to zero (atleast in one of the dimension) in file %s. This is not supported- please recheck the header. You can try using '...
+      'add_sform.m first, if the file has valid q-form matrix.'], [fileBaseName(vol.fileprefix) '.nii']);    
+end;
+
+% Skip this check - To allow sform to be an arbitary affine matrix as per
+% official nifti-1 guidelines (when sform_code>1). See: https://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
+% if abs(abs(det(Tvol)) - prod(res)) > zero_thresh % determinant can be -ve (eg. improper rotation matrix)
+%    error(['Either the resolution information in sform does not match the header pixdim field in file %s OR the sform matrix has large shear/skew component. Please recheck the header. You can try using '...
+%       'add_sform.m first, if the file has valid q-form matrix.'], [fileBaseName(vol.fileprefix) '.nii']);    
+% end
+
+data = vol.img;
 vol_size = size(data);
 
 % Voxel indexing starts from 0

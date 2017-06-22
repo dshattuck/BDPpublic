@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -63,7 +63,8 @@ output_file_base = fullfile(opt.tensor_out_dir, fileBaseName(data_file));
 % Apply the rigid transform to header of dwi file
 load(affinematrixfile);
 data_file_transformed = [tempname '.nii.gz'];
-affine_transform_nii(data_file, M_world, origin, data_file_transformed);
+[~,Tnew] = affine_transform_nii(data_file, M_world, origin, data_file_transformed);
+clear Tnew;
 
 % load bmatrices
 if ischar(bMatrices)

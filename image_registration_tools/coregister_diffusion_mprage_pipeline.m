@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -269,16 +269,16 @@ elseif opt.registration_distortion_correction
          end
    end
    
-   moving_out = DWI_orig;
-   moving_out.img = zeros(size(DWI_orig.img));
+%    moving_out = DWI_orig;
+%    moving_out.img = zeros(size(DWI_orig.img));
    cpb = ConsoleProgressBar(); % Set progress bar parameters
    cpb.setMinimum(1);
    cpb.setMaximum(size(DWI_orig.img,4));
    cpb.start();
    for k = 1:size(DWI_orig.img,4)
-      moving_out.img(:,:,:,k) = interpn(double(DWI_orig.img(:,:,:,k)), x_g, y_g, z_g, 'cubic', 0);
+      DWI_orig.img(:,:,:,k) = interpn(double(DWI_orig.img(:,:,:,k)), x_g, y_g, z_g, 'cubic', 0);
       if opt.intensity_correct
-         moving_out.img(:,:,:,k) = moving_out.img(:,:,:,k) .* (1+crct_grd);
+         DWI_orig.img(:,:,:,k) = double(DWI_orig.img(:,:,:,k)) .* (1+crct_grd);
       end
       text = sprintf('%d/%d volumes done', k, size(DWI_orig.img,4));
       cpb.setValue(k); cpb.setText(text);
@@ -287,10 +287,10 @@ elseif opt.registration_distortion_correction
    
    % save corrected data
    disp('Saving corrected diffusion data...')
-   moving_out.hdr.dime.scl_slope = 0;
-   moving_out.hdr.dime.scl_inter = 0;
-   save_untouch_nii_gz(moving_out, dwi_correct_filename, workDir);
-   clear moving_out DWI_orig crct_grd x_g y_g z_g t_epi DWI_orig_res
+   DWI_orig.hdr.dime.scl_slope = 0;
+   DWI_orig.hdr.dime.scl_inter = 0;
+   save_untouch_nii_gz(DWI_orig, dwi_correct_filename, workDir);
+   clear DWI_orig crct_grd x_g y_g z_g t_epi DWI_orig_res
    fprintf('\nDistortion correction finished.\n');
 else
    dwi_correct_filename = dwi_filename;

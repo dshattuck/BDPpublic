@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -92,13 +92,15 @@ bdp_options = struct( ...
    'ignore_fmap_FOV_errors', false, ...
    'fieldmap_leastsq', true, ...
    ...
-   ... tensor/FRT/FRACT/3DSHORE odf
+   ... tensor/FRT/FRACT/3DSHORE/GQI odf
    'estimate_tensor', false, ...
    'estimate_odf_FRACT', false, ...
    'estimate_odf_FRT', false, ...
    'estimate_odf_3DSHORE', false, ...
+   'estimate_odf_GQI',false, ...
    'odf_lambda', 0.006, ...
    'diffusion_time', 0, ...
+   'sigma_gqi',1.25, ...
    'diffusion_coord_outputs', false, ...
    'diffusion_coord_output_folder', [], ...
    'diffusion_modelling_mask', [], ... % mask filename in diffusion coordinate
@@ -308,7 +310,7 @@ while iflag <= nflags
          bdp_options.pngout = true;            
          
       case '--odf'
-        error('BDP:FlagError', '--odf flag is not supported anymore. Please select the odf methods to run using method specific flags instead. Supported odf method flags : --frt and/or --fract and/or --3dshore.');
+        error('BDP:FlagError', '--odf flag is not supported anymore. Please select the odf methods to run using method specific flags instead. Supported odf method flags : --frt and/or --fract and/or --3dshore and/or --gqi.');
          
       case '--fract'
          bdp_options.estimate_odf_FRACT = true;
@@ -318,7 +320,10 @@ while iflag <= nflags
       
 	  case '--3dshore'
          bdp_options.estimate_odf_3DSHORE = true;
-     
+		
+	  case '--gqi'
+         bdp_options.estimate_odf_GQI = true;
+		 
       case '--diffusion_time_ms'
          if (iflag + 1 > nflags)
             error('BDP:FlagError', 'Diffusion time in ms must be specified after --diffusion_time_ms.');
@@ -688,8 +693,17 @@ while iflag <= nflags
          if isnan(bdp_options.odf_lambda) || bdp_options.odf_lambda<0
             error('BDP:FlagError','--odf-lambda flag must be followed by a non-negative (float) number.');
          end
-         iflag = iflag + 1;         
-         
+         iflag = iflag + 1;   
+		 
+	  case  '--gqi-sigma'
+		 if (iflag + 1 > nflags)
+			error('BDP:FlagError','--gqi-sigma flag specified but no value of the parameter provided.');
+		 end
+		 bdp_options.sigma_gqi = str2double(flag_cell{iflag+1});
+		 if isnan(bdp_options.sigma_gqi) || bdp_options.sigma_gqi<=0
+			error('BDP:FlagError','--gqi-sigma flag must be followed by a positive (float) number.');
+		 end
+		 iflag = iflag + 1;  
          
       otherwise
          
@@ -772,8 +786,8 @@ if bdp_options.fieldmap_distortion_correction && (bdp_options.fieldmap_leastsq &
 end
 
 % Set tensor calculation as default if no choice made
-if ~bdp_options.estimate_odf_FRACT && ~bdp_options.estimate_odf_FRT && ~bdp_options.estimate_tensor && ~bdp_options.estimate_odf_3DSHORE
-   fprintf(bdp_linewrap('Did not detect --FRT/--FRACT/--tensor. Using default setting of estimating tensors.\n'));
+if ~bdp_options.estimate_odf_FRACT && ~bdp_options.estimate_odf_FRT && ~bdp_options.estimate_tensor && ~bdp_options.estimate_odf_3DSHORE && ~bdp_options.estimate_odf_GQI
+   fprintf(bdp_linewrap('Did not detect --FRT/--FRACT/--tensor/--3dshore/--gqi. Using default setting of estimating tensors.\n'));
    bdp_options.estimate_tensor = true;
 end
 
@@ -797,12 +811,12 @@ if ~bdp_options.no_structural_registration
    bdp_options.bfc_file = bfc_file;
 end
 
-if bdp_options.estimate_odf_3DSHORE
-    % Check if diffusion time was set by the user for 3d shore.
+if bdp_options.estimate_odf_3DSHORE || bdp_options.estimate_odf_GQI
+    % Check if diffusion time was set by the user for 3d-shore and GQI.
     if bdp_options.diffusion_time == 0,
          err_msg = ['BDP can not find diffusion time flag or it is set to 0. Please make sure that you used '...
            '--diffusion_time_ms flag followed by the diffusion time (in milliseconds) of the DWI dataset.'...
-           ' 3DSHORE based ODFs require diffusion time as a mandatory input parameter.'...
+           ' 3DSHORE and GQI based ODFs require diffusion time as a mandatory input parameter.'...
            'You can find the command used in BDP summary file (<fileprefix>.BDPSummary.txt).'];
          error('BDP:MandatoryInputNotFound', bdp_linewrap(err_msg));
     end;

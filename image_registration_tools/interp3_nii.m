@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2016 The Regents of the University of California and
+% Copyright (C) 2017 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -39,6 +39,7 @@ if ~exist('method', 'var')
 end
 
 [dataIn, ~, ~, ~, res1, T1, data] = get_original_grid_data(datafile);
+dataIn = double(dataIn);
 [~, X_vol2, Y_vol2, Z_vol2, ~, T2, vol_interp] = get_original_grid_data(target_file);
 
 
