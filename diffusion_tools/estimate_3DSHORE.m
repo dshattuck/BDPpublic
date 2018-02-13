@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2017 The Regents of the University of California and
+% Copyright (C) 2018 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -31,7 +31,8 @@ disp('Estimating ODFs in diffusion coordinates...')
 
 % setting up the defaults options
 opt = struct( ...
-   'RadialOrder', 8, ...
+   'HarmonicOrder', 8, ...
+   'shore_radial_ord', 6, ...
    'shore_lambdaN', 1e-8, ...
    'shore_lambdaL', 1e-8, ...
    'shore_zeta', 700, ...
@@ -121,11 +122,13 @@ end
 b0mean = b0mean(:);
 
 % 3DSHORE Computation
-RadialOrder = opt.RadialOrder;
+RadialOrder = opt.shore_radial_ord;
 lambdaN = opt.shore_lambdaN;
 lambdaL = opt.shore_lambdaL;
 Dcoeff = opt.diffusion_coeff;
 zeta = 1/(8*pi^2*Dcoeff*del_t);
+HarmonicOrder = opt.HarmonicOrder;
+
 % zeta = opt.shore_zeta;
 
 % Regularization
@@ -141,6 +144,10 @@ Sh_LS = (Sh'*Sh + lambdaN.*Nshore + lambdaL.*Lshore )\Sh';
 [radInt,N] = shore_odf_factor(zeta,RadialOrder);
 
 shoreMatrixReg = Sh_LS'*diag(radInt);
+
+%Spherical harmonic basis 
+[S,L] = sph_harm_basis([q(:,1),q(:,2),q(:,3)],HarmonicOrder,2);
+sphericalHarmonicMatrixReg = (S'*S+lambda*diag(L.^2.*(L+1).^2))\(S');
 
 dwimages = double(reshape(dwi.img, [], nDir));
 dwimages = dwimages(:,ind);

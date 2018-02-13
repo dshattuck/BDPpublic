@@ -2,7 +2,7 @@
  * 
  * BDP BrainSuite Diffusion Pipeline
  * 
- * Copyright (C) 2017 The Regents of the University of California and
+ * Copyright (C) 2018 The Regents of the University of California and
  * the University of Southern California
  * 
  * Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,

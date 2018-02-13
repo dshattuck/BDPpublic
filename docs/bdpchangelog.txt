@@ -1,3 +1,6 @@
+v18a (2018-02-13, Build #0073)
+   * Added 3D-SHORE radial order flag (--3dshore-radord).
+   * Bug fix : Filename length checks added. 
 v17a (2017-06-09, Build #0072)
    * Added GQI based ODF estimation (--GQI).
    * Optimized BDP's memory usage. 

@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2017 The Regents of the University of California and
+% Copyright (C) 2018 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -26,13 +26,13 @@
 function out_fname = suffix_filename(fname, suffix)
 % Puts suffix at relevant location. useful for filenames with special meaning.
 
-if strcmp(fname(end-11:end), '.mask.nii.gz')
+if (length(fname)>11) && strcmp(fname(end-11:end), '.mask.nii.gz')
    out_fname = [fname(1:end-12) suffix '.mask.nii.gz'];
    
-elseif strcmp(fname(end-12:end), '.label.nii.gz')
+elseif (length(fname)>12) && strcmp(fname(end-12:end), '.label.nii.gz')
    out_fname = [fname(1:end-13) suffix '.label.nii.gz'];
    
-elseif strcmp(fname(end-10:end), '.eig.nii.gz')
+elseif (length(fname)>10) && strcmp(fname(end-10:end), '.eig.nii.gz')
    out_fname = [fname(1:end-11) suffix '.eig.nii.gz'];
 
 else

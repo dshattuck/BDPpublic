@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2017 The Regents of the University of California and
+% Copyright (C) 2018 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -101,6 +101,7 @@ bdp_options = struct( ...
    'odf_lambda', 0.006, ...
    'diffusion_time', 0, ...
    'sigma_gqi',1.25, ...
+   'shore_radial_ord',6,...
    'diffusion_coord_outputs', false, ...
    'diffusion_coord_output_folder', [], ...
    'diffusion_modelling_mask', [], ... % mask filename in diffusion coordinate
@@ -702,6 +703,16 @@ while iflag <= nflags
 		 bdp_options.sigma_gqi = str2double(flag_cell{iflag+1});
 		 if isnan(bdp_options.sigma_gqi) || bdp_options.sigma_gqi<=0
 			error('BDP:FlagError','--gqi-sigma flag must be followed by a positive (float) number.');
+		 end
+		 iflag = iflag + 1; 
+		 
+  	  case  '--3dshore-radord'
+		 if (iflag + 1 > nflags)
+			error('BDP:FlagError','--3dshore-radord flag specified but no value of the parameter provided.');
+		 end
+		 bdp_options.shore_radial_ord = str2double(flag_cell{iflag+1});
+		 if isnan(bdp_options.shore_radial_ord) || bdp_options.shore_radial_ord<=0
+			error('BDP:FlagError','--3dshore-radord flag must be followed by a positive number.');
 		 end
 		 iflag = iflag + 1;  
          
