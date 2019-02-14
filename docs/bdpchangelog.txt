@@ -1,3 +1,5 @@
+v19a (2018-02-13, Build #0073)
+   * Added ERFO odf flag (--erfo)
 v18a (2018-02-13, Build #0073)
    * Added 3D-SHORE radial order flag (--3dshore-radord).
    * Bug fix : Filename length checks added. 

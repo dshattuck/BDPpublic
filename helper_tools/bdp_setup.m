@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2018 The Regents of the University of California and
+% Copyright (C) 2019 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -98,10 +98,12 @@ bdp_options = struct( ...
    'estimate_odf_FRT', false, ...
    'estimate_odf_3DSHORE', false, ...
    'estimate_odf_GQI',false, ...
+   'estimate_odf_ERFO', false, ...
    'odf_lambda', 0.006, ...
    'diffusion_time', 0, ...
    'sigma_gqi',1.25, ...
    'shore_radial_ord',6,...
+   'snr', 35,...
    'diffusion_coord_outputs', false, ...
    'diffusion_coord_output_folder', [], ...
    'diffusion_modelling_mask', [], ... % mask filename in diffusion coordinate
@@ -324,7 +326,10 @@ while iflag <= nflags
 		
 	  case '--gqi'
          bdp_options.estimate_odf_GQI = true;
-		 
+	 
+      case '--erfo'
+         bdp_options.estimate_odf_ERFO = true;
+         
       case '--diffusion_time_ms'
          if (iflag + 1 > nflags)
             error('BDP:FlagError', 'Diffusion time in ms must be specified after --diffusion_time_ms.');
@@ -336,8 +341,8 @@ while iflag <= nflags
          else
             bdp_options.diffusion_time = diffusion_time*10^-3;
          end
-         iflag = iflag + 1;         
-		 
+         iflag = iflag + 1; 
+         		 
       case {'--tensor', '--tensors'}
          bdp_options.estimate_tensor = true;
          
@@ -715,7 +720,20 @@ while iflag <= nflags
 			error('BDP:FlagError','--3dshore-radord flag must be followed by a positive number.');
 		 end
 		 iflag = iflag + 1;  
-         
+      
+       case '--snr'
+         if (iflag + 1 > nflags)
+            error('BDP:FlagError', 'SNR in ms must be specified after --snr.');
+         end
+         snr = str2double(flag_cell{iflag+1});
+         if isnan(snr) || snr<=0
+            error('BDP:FlagError', 'SNR specified after --snr flag must be a positive number: %s',...
+               flag_cell{iflag+1});
+         else
+            bdp_options.snr = snr;
+         end
+         iflag = iflag + 1; 
+  
       otherwise
          
          if strncmp(inpt, '--dir=', 6)
@@ -797,8 +815,8 @@ if bdp_options.fieldmap_distortion_correction && (bdp_options.fieldmap_leastsq &
 end
 
 % Set tensor calculation as default if no choice made
-if ~bdp_options.estimate_odf_FRACT && ~bdp_options.estimate_odf_FRT && ~bdp_options.estimate_tensor && ~bdp_options.estimate_odf_3DSHORE && ~bdp_options.estimate_odf_GQI
-   fprintf(bdp_linewrap('Did not detect --FRT/--FRACT/--tensor/--3dshore/--gqi. Using default setting of estimating tensors.\n'));
+if ~bdp_options.estimate_odf_FRACT && ~bdp_options.estimate_odf_FRT && ~bdp_options.estimate_tensor && ~bdp_options.estimate_odf_3DSHORE && ~bdp_options.estimate_odf_GQI && ~bdp_options.estimate_odf_ERFO
+   fprintf(bdp_linewrap('Did not detect --FRT/--FRACT/--tensor/--3dshore/--gqi/--erfo. Using default setting of estimating tensors.\n'));
    bdp_options.estimate_tensor = true;
 end
 
@@ -822,12 +840,12 @@ if ~bdp_options.no_structural_registration
    bdp_options.bfc_file = bfc_file;
 end
 
-if bdp_options.estimate_odf_3DSHORE || bdp_options.estimate_odf_GQI
+if bdp_options.estimate_odf_3DSHORE || bdp_options.estimate_odf_GQI  || bdp_options.estimate_odf_ERFO 
     % Check if diffusion time was set by the user for 3d-shore and GQI.
     if bdp_options.diffusion_time == 0,
          err_msg = ['BDP can not find diffusion time flag or it is set to 0. Please make sure that you used '...
            '--diffusion_time_ms flag followed by the diffusion time (in milliseconds) of the DWI dataset.'...
-           ' 3DSHORE and GQI based ODFs require diffusion time as a mandatory input parameter.'...
+           ' 3DSHORE, GQI and ERFO based ODFs require diffusion time as a mandatory input parameter.'...
            'You can find the command used in BDP summary file (<fileprefix>.BDPSummary.txt).'];
          error('BDP:MandatoryInputNotFound', bdp_linewrap(err_msg));
     end;

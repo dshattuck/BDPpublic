@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2018 The Regents of the University of California and
+% Copyright (C) 2019 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -109,6 +109,19 @@ try
           end
       end
    end
+
+ if opts.estimate_odf_ERFO           
+     bdpPrintSectionHeader('Estimating ERFO Diffusion ODFs');
+     if ~opts.no_structural_registration
+        estimate_ERFO_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
+     end
+
+     if opts.diffusion_coord_outputs || opts.no_structural_registration
+        uopts = opts;
+        uopts.ERFO_out_dir = fullfile(opts.diffusion_coord_output_folder, 'ERFO');
+        estimate_ERFO_slice(dwi_corr_file, bmat_file, uopts);
+     end
+ end
    
    % rigid transform data, if required
    transform_data_rigid(opts);

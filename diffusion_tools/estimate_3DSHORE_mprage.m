@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2018 The Regents of the University of California and
+% Copyright (C) 2019 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -41,7 +41,6 @@ mkdir(workdir);
 
 % setting up the defaults options
 opt = struct( ...
-   'HarmonicOrder', 8, ...
    'shore_radial_ord', 6, ...
    'shore_lambdaN', 1e-8, ...
    'shore_lambdaL', 1e-8, ...
@@ -156,8 +155,6 @@ lambdaN = opt.shore_lambdaN;
 lambdaL = opt.shore_lambdaL;
 Dcoeff = opt.diffusion_coeff;
 zeta = 1/(8*pi^2*Dcoeff*del_t);
-HarmonicOrder = opt.HarmonicOrder;
-
 % zeta = opt.shore_zeta;
 
 % Regularization

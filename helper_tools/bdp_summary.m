@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2018 The Regents of the University of California and
+% Copyright (C) 2019 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -32,7 +32,10 @@ citations = struct( ...
    'haldar2013', false, ...
    'kim2009', false, ...
    'ozarslan2009', false, ...
-   'yeh2010', false);
+   'yeh2010', false, ...
+   'varadarajan2017',false, ...
+   'varadarajan2018a', false, ...
+   'varadarajan2018b', false);
 
 
 filecontents = {'BrainSuite Diffusion Pipeline: Processing Summary\n', ...
@@ -137,6 +140,12 @@ if optionsStruct.estimate_odf_GQI
    citations.yeh2010 = true;
 end
 
+%ERFO estimation
+if optionsStruct.estimate_odf_ERFO
+   filecontents{end+1} = ['A theoretical signal processing framework for linear diffusion MRI:' ...
+       'Implications for parameter estimation and experiment design. described in [Varadarajan 2017].\n\n'];
+   citations.varadarajan2017 = true;
+end
 
 % %%%%%%%%%%
 % Append citation
@@ -194,6 +203,12 @@ if citations.yeh2010
 	  'and Wen-Yih Isaac Tseng, "Generalized q-Sampling Imaging", ' ...
       'IEEE Transactions on medical imaging, Volume 29, No. 9,' ...
 	  'Pages 1626-1635, 2010\n\n'];
+end
+
+if citations.varadarajan2017
+   filecontents{end+1} = ['[Varadarajan 2017] D. Varadarajan, J. P. Haldar,' ...
+	  '"A theoretical signal processing framework for linear diffusion MRI: Implications for parameter estimation and experiment design.", ' ...
+      'Neuroimage, Volume 161, Pages 206-218, 2017\n\n'];
 end
 
 % linewrap
