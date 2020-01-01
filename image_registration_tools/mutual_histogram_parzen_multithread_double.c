@@ -114,7 +114,7 @@ voidthread parzenhistogram(double **Args) {
       ymi=(int)ym;
       
       /* putting things outside range on the edge of the bins OR normalize image before input */
-      /*if(xd<-1){ xd=-1; xmi=-1; } else if(xd>sizexd+1) { xd=sizexd+1; xmi=sizexd+1; }
+      /*if(xd<-1){ xd=-1; xmi=-1; } else if(xd>sizexd+1) { xd=sizexd+1; xmi=sizexd+1; } */ /* closed comment to remove warning during compilation - dws 11/27/19 */
       /*if(yd<-1){ yd=-1; ymi=-1; } else if(yd>sizexd+1) { yd=sizexd+1; ymi=sizexd+1; }
       */
       

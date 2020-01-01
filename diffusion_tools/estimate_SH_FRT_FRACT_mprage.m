@@ -50,7 +50,11 @@ opt = struct( ...
     'estimate_odf_FRACT', true, ...
     'mprage_coord_suffix', '.T1_coord', ...
     'bval_ratio_threshold', 45, ...
-    't1_mask_file', target_file ...
+    't1_mask_file', target_file, ...
+    'save_fib', false, ...
+    'run_dsi_studio', false, ...
+    'dsi_path',[], ...
+    'tracking_params', [] ...
     );
 
 fprintf('\nEstimating ODFs in T1-coordinate...');
@@ -72,6 +76,7 @@ end
 
 
 fname = fileBaseName(data_file);
+subname = fname;
 FRT_output_file_base = fullfile(opt.FRT_out_dir, fname);
 FRACT_output_file_base = fullfile(opt.FRACT_out_dir, fname);
 if opt.estimate_odf_FRT && ~exist(opt.FRT_out_dir, 'dir'),  mkdir(opt.FRT_out_dir); end
@@ -235,10 +240,15 @@ cpb.stop();
 fprintf('\n');
 clear dwimages b0mean
 
-if opt.estimate_odf_FRACT, fract_fid = fopen([FRACT_output_file_base '.SH.FRACT' opt.mprage_coord_suffix '.odf'], 'w'); end
+if opt.estimate_odf_FRACT, 
+    fract_fid = fopen([FRACT_output_file_base '.SH.FRACT' opt.mprage_coord_suffix '.odf'], 'w'); 
+    odf_fname_fract = [subname '.SH.FRACT' opt.mprage_coord_suffix '.odf'];
+end
+
 if opt.estimate_odf_FRT
    frt_fid = fopen([FRT_output_file_base '.SH.FRT' opt.mprage_coord_suffix '.odf'], 'w');
-   
+   odf_fname_frt = [subname '.SH.FRT' opt.mprage_coord_suffix '.odf'];
+
    temp3.img = zeros(target_vol_size);
    temp3.img(target_ind) = GFA(1:length(target_ind));
    fname = fullfile(fileparts(opt.FRT_out_dir), ... % in parent folder of opt.FRT_out_dir
@@ -269,6 +279,47 @@ end
 if opt.estimate_odf_FRACT, fclose(fract_fid); end
 if opt.estimate_odf_FRT, fclose(frt_fid); end
 
+if opt.save_fib & opt.estimate_odf_FRT
+    disp('Writing FRT FIB files to disk...');
+    op = [ opt.FRT_out_dir '_FIB']; mkdir(op);
+    opname = [subname '.SH.FRT.FIB' opt.mprage_coord_suffix];
+    bsOdfFibFileFAST(target_file,opt.FRT_out_dir,odf_fname_frt,'./',op,opname,0,0,1,targetMask);
+end
+
+if opt.save_fib & opt.estimate_odf_FRACT
+    disp('Writing FRACT FIB files to disk...');
+    op = [ opt.FRACT_out_dir '_FIB']; mkdir(op);
+    opname = [subname '.SH.FRACT.FIB' opt.mprage_coord_suffix];
+    bsOdfFibFileFAST(target_file,opt.FRACT_out_dir,odf_fname_fract,'./',op,opname,0,0,1,targetMask);
+end
+
+if opt.run_dsi_studio & opt.save_fib & opt.estimate_odf_FRT
+    if ~isempty(opt.dsi_path)
+        disp('Running DSI studio');
+    %     dsi_path = './dsi_studio_build';
+        op = opt.FRT_out_dir;
+        opname = [subname '.SH.FRT.TRK' opt.mprage_coord_suffix];
+        fib_file = [opt.FRT_out_dir '_FIB/' subname '.SH.FRT.FIB' opt.mprage_coord_suffix '.fib'];
+        DSI_tracking(fib_file, opt.tracking_params,opt.dsi_path,op,opname,opt);
+    else
+        msg = {'\n Skipping running tracking because DSI studio installation path is set to an empty string. Please check the installation path. You can re-run bdp with --tracking_only flag and run dsi studio tracking only.BDP will assume FIB file already exists and jump straight to tracking.', '\n'};
+        fprintf(bdp_linewrap(msg));  
+    end
+end
+
+if opt.run_dsi_studio & opt.save_fib & opt.estimate_odf_FRACT
+    if ~isempty(opt.dsi_path)
+        disp('Running DSI studio');
+    %     dsi_path = './dsi_studio_build';
+        op = opt.FRACT_out_dir;
+        opname = [subname '.SH.FRACT.TRK' opt.mprage_coord_suffix];
+        fib_file = [opt.FRACT_out_dir '_FIB/' subname '.SH.FRACT.FIB' opt.mprage_coord_suffix '.fib'];
+        DSI_tracking(fib_file, opt.tracking_params,opt.dsi_path,op,opname,opt);
+    else
+        msg = {'\n Skipping running tracking because DSI studio installation path is set to an empty string. Please check the installation path. You can re-run bdp with --tracking_only flag and run dsi studio tracking only.BDP will assume FIB file already exists and jump straight to tracking.', '\n'};
+        fprintf(bdp_linewrap(msg));  
+    end
+end
 rmdir(workdir, 's');
 fprintf('Estimated ODFs written to disk.\n\n')
 end

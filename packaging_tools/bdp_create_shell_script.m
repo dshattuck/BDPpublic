@@ -47,7 +47,8 @@ end
 switch matlabReleaseStr
     case 'R2015b'
         MCR_root_name = 'MATLAB_Runtime';
-        
+    case 'R2019b'
+        MCR_root_name = 'MATLAB_Runtime';	        
     case 'R2012a'
         MCR_root_name = 'MATLAB_Compiler_Runtime';
         
@@ -68,7 +69,7 @@ if ismac
         'export XAPPLRESDIR;\n'];
     TESTMCR = sprintf('if [ ! -e ${BrainSuiteMCR}/runtime/maci64/libmwmclmcrrt.%s.dylib ]', mcrVersionDotStr);
     lib_Ext = '.dylib';
-    RUNCOMMAND = '${exe_dir}/bdp.app/Contents/MacOS/BrainSuite_Diffusion_pipeline $args';
+    RUNCOMMAND = '${exe_dir}/bdp.app/Contents/MacOS/BrainSuite_Diffusion_pipeline "$@"';
 
 else
     MCR_DIR   = ['/usr/local/MATLAB/' MCR_root_name '/v' mcrVersionStr];
@@ -87,7 +88,7 @@ else
         'export XAPPLRESDIR;\n'];
     TESTMCR = sprintf('if [ ! -e ${BrainSuiteMCR}/runtime/glnxa64/libmwmclmcrrt.so.%s ]', mcrVersionDotStr);
     lib_Ext = '';
-    RUNCOMMAND = '${exe_dir}/bdp $args';
+    RUNCOMMAND = '${exe_dir}/bdp "$@"';  % before - $args';
 end
 
 
@@ -169,11 +170,6 @@ script = sprintf([...
     '  exit\n'...
     'fi\n'...
     '\n'...
-    'while [ $# -gt 0 ]; do\n'...
-    '  token=`echo "$1" | sed ''s/ /\\\\\\\\\\\\\\\\ /g''`   # Add blackslash before each blank\n'...
-    '  args="${args} ${token}" \n'...
-    '  shift\n'...
-    'done\n'...
     '\n'...
     '# Set up path for MCR applications.\n'...
     '%s\n'... PATH

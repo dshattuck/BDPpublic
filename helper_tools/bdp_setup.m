@@ -110,6 +110,10 @@ bdp_options = struct( ...
    'bMatrixCond', [], ...
    'bval_ratio_threshold', 45, ... ratio of 900 to 20
    'num_of_estimated_b0s', [], ...
+   'save_fib', false, ...
+   'run_dsi_studio', [], ...
+   'tracking_params', [], ...
+   'tracking_only', false, ...
    ...
    ... stats options
    'generate_stats', false, ...
@@ -250,6 +254,9 @@ while iflag <= nflags
             % check for nested structure
             [pthstr, ~, ~] = fileparts(output_subdir);
             [bfc_pth, bfc_nm, bfc_e] = fileparts(bfc_filebase);
+            if isempty(bfc_pth)
+                bfc_pth = pwd;
+            end
             output_subdir = fullfile(bfc_pth, output_subdir); % make full directory
             if ~isempty(pthstr)
                msg = ['\nSub directory specified by --output-subdir flag seems to have nested structure. BDP '...
@@ -733,7 +740,39 @@ while iflag <= nflags
             bdp_options.snr = snr;
          end
          iflag = iflag + 1; 
-  
+
+       case '--save_fib'
+         bdp_options.save_fib = true;  
+         
+       case '--run_dsi_studio'
+         if (iflag+1 > nflags)
+            error('BDP:FlagError', ['--run_dsi_studio must be followed by path to DSI studio installation. BDP provides  '...
+               'dsi studio executables at <BrainSuite installation path>/bdp/interop_dsi_studio/ - use this path or use the path to dsi studio installation.']);
+         else
+           dsi_path = flag_cell{iflag+1};
+           disp(['Setting dsi studio path as' dsi_path]);
+%            [pthstr, ~, ~] = fileparts(dsi_path);
+           if ~exist(dsi_path, 'dir')
+              error('BDP:FlagError', 'dsi studio installation path does not exsit. Please check the path.');
+           end   
+         end
+         bdp_options.dsi_path = dsi_path;
+         bdp_options.run_dsi_studio = true;
+         bdp_options.save_fib = true;
+         iflag = iflag + 1;
+         
+       case '--tracking_params'
+         if (iflag+1 > nflags)
+            error('BDP:FlagError', '--tracking_params must be followed by string of parameters that you want to input. If unsure, BDP runs two sets of default parmaeters.');
+         else
+           params = flag_cell{iflag+1};
+         end
+         bdp_options.tracking_params{1} = params;
+         iflag = iflag + 1;
+         
+       case '--tracking_only'
+           bdp_options.tracking_only = true;
+           
       otherwise
          
          if strncmp(inpt, '--dir=', 6)

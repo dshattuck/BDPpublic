@@ -38,7 +38,7 @@ try
    opts = bdp_setup(varargin{:});
    fprintf('\nProcessing data with fileprefix:\n\t%s\n', opts.bfc_file_base);
    
-   if ~opts.generate_only_stats && ~opts.only_transform_data
+   if ~opts.generate_only_stats && ~opts.only_transform_data && ~opts.tracking_only
       
       if opts.no_structural_registration
          [dwi_corr_file, bmat_file] = reorientDWI_BDP(opts.dwi_file, ...
@@ -108,20 +108,21 @@ try
               estimate_tensors(dwi_corr_file, bmat_file, uopts);
           end
       end
+      
+      if opts.estimate_odf_ERFO           
+         bdpPrintSectionHeader('Estimating ERFO Diffusion ODFs');
+         if ~opts.no_structural_registration
+            estimate_ERFO_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
+         end
+
+         if opts.diffusion_coord_outputs || opts.no_structural_registration
+            uopts = opts;
+            uopts.ERFO_out_dir = fullfile(opts.diffusion_coord_output_folder, 'ERFO');
+            estimate_ERFO_slice(dwi_corr_file, bmat_file, uopts);
+         end
+     end
+
    end
-
- if opts.estimate_odf_ERFO           
-     bdpPrintSectionHeader('Estimating ERFO Diffusion ODFs');
-     if ~opts.no_structural_registration
-        estimate_ERFO_mprage(dwi_corr_file, opts.bfc_file, affinematrix_file, bmat_file, opts);
-     end
-
-     if opts.diffusion_coord_outputs || opts.no_structural_registration
-        uopts = opts;
-        uopts.ERFO_out_dir = fullfile(opts.diffusion_coord_output_folder, 'ERFO');
-        estimate_ERFO_slice(dwi_corr_file, bmat_file, uopts);
-     end
- end
    
    % rigid transform data, if required
    transform_data_rigid(opts);
@@ -149,6 +150,19 @@ try
       if opts.diffusion_coord_outputs
          generate_diffusion_stats_diffusion_coord(dwi_corr_file, opts)
       end
+   end
+   
+   if opts.tracking_only
+       if ~exist('dwi_corr_file', 'var')
+         if (opts.fieldmap_distortion_correction || opts.registration_distortion_correction) ...
+               && exist([opts.file_base_name opts.dwi_fname_suffix '.RAS' opts.dwi_corrected_suffix '.nii.gz'], 'file')
+            dwi_corr_file = [opts.file_base_name opts.dwi_fname_suffix '.RAS' opts.dwi_corrected_suffix '.nii.gz'];          
+         elseif ~(opts.fieldmap_distortion_correction || opts.registration_distortion_correction) ...
+               && exist([opts.file_base_name opts.dwi_fname_suffix '.RAS.nii.gz'], 'file')
+            dwi_corr_file = [opts.file_base_name opts.dwi_fname_suffix '.RAS.nii.gz'];     
+         end
+       end
+       run_tracking_only(dwi_corr_file,opts);
    end
    
    if ~opts.no_structural_registration

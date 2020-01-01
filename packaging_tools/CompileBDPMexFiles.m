@@ -28,20 +28,20 @@ function CompileBDPMexFiles()
 current_directory = pwd;
 
 %% Demon Registration
-cd(['..' filesep 'external_tools' filesep '+demon_registration']);
+cd(['..' filesep '3rdParty' filesep '+demon_registration']);
 mex -v affine_transform_3d_double.c image_interpolation.c;
 mex -v imgaussian.c;
 cd(current_directory)
 
 %% B-Spline Registration
-cd(['..' filesep 'external_tools' filesep 'b-spline_registration' filesep 'functions']);
+cd(['..' filesep '3rdParty' filesep 'b-spline_registration' filesep 'functions']);
 mex -v imgaussian.c;
 % mex -v maxNumCompThreads.c;
 mex -v squared_difference_double.c;
 mex -v squared_difference_single.c;
 cd(current_directory)
 
-cd(['..' filesep 'external_tools' filesep 'b-spline_registration' filesep 'functions_affine']);
+cd(['..' filesep '3rdParty' filesep 'b-spline_registration' filesep 'functions_affine']);
 mex -v affine_transform_3d_double.c image_interpolation.c;
 cd(current_directory);
 

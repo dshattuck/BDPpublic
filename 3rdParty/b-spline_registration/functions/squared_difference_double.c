@@ -18,7 +18,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* Loop variable  */
     int i;
     /*  Size of output */
-    int odims2[2]={1,1};
+    mwSize odims2[2]={1,1}; /* changed int to mwSize - dws 11/27/19 */
     /*  Total squared error */
     double ierror=0;
     

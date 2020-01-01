@@ -24,7 +24,7 @@
 
 
 % Calculates Generalized Laguerre polynomial
-% Szegö: Orthogonal Polynomials, 1958, (5.1.10)
+% Szegï¿½: Orthogonal Polynomials, 1958, (5.1.10)
 function L = laguerrePoly(n,a,x)
 l=zeros(n+1);          
 if(n==0)

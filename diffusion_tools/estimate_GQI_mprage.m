@@ -48,8 +48,12 @@ opt = struct( ...
    'GQI_out_dir', fullfile(fileparts(data_file), 'GQI'), ...
    'mprage_coord_suffix', '.T1_coord', ...
    'bval_ratio_threshold', 45, ...
-   't1_mask_file', target_file ...
-    );
+   't1_mask_file', target_file, ...
+   'save_fib', false, ...
+   'run_dsi_studio', false, ...
+   'dsi_path',[], ...
+   'tracking_params', [] ...
+   );
 
 fprintf('\nEstimating GQI ODFs in T1-coordinate...');
 
@@ -69,6 +73,7 @@ end
 
 
 fname = fileBaseName(data_file);
+subname = fname;
 GQI_output_file_base = fullfile(opt.GQI_out_dir, fname);
 if opt.estimate_odf_GQI && ~exist(opt.GQI_out_dir, 'dir'), mkdir(opt.GQI_out_dir); end
 
@@ -216,6 +221,7 @@ fprintf('\n');
 clear dwimages b0mean
 
 gqi_fid = fopen([GQI_output_file_base '.SH.GQI' opt.mprage_coord_suffix '.odf'], 'w');
+odf_fname = [subname '.SH.GQI' opt.mprage_coord_suffix '.odf'];
 
 disp('Writing GQI ODF files to disk...')
 temp3.img = zeros(target_vol_size);
@@ -227,6 +233,27 @@ for k = 1:size(sh_gqi,1),
     save_untouch_nii_gz(temp3, fname, 16);
 end
 fclose(gqi_fid);
+
+if opt.save_fib
+    disp('Writing GQI FIB files to disk...');
+    op = [ opt.GQI_out_dir '_FIB']; mkdir(op);
+    opname = [subname '.SH.GQI.FIB' opt.mprage_coord_suffix];
+    bsOdfFibFileFAST(target_file,opt.GQI_out_dir,odf_fname,'./',op,opname,0,0,1,targetMask);
+end
+
+if opt.run_dsi_studio & opt.save_fib
+    if ~isempty(opt.dsi_path)
+        disp('Running DSI studio');
+    %     dsi_path = './dsi_studio_build';
+        op = opt.GQI_out_dir;
+        opname = [subname '.SH.GQI.TRK' opt.mprage_coord_suffix];
+        fib_file = [opt.GQI_out_dir '_FIB/' subname '.SH.GQI.FIB' opt.mprage_coord_suffix '.fib'];
+        DSI_tracking(fib_file, opt.tracking_params,opt.dsi_path,op,opname,opt);
+    else
+        msg = {'\n Skipping running tracking because DSI studio installation path is set to an empty string. Please check the installation path. You can re-run bdp with --tracking_only flag and run dsi studio tracking only.BDP will assume FIB file already exists and jump straight to tracking.', '\n'};
+        fprintf(bdp_linewrap(msg));  
+    end
+end
 
 rmdir(workdir, 's');
 fprintf('Estimated GQI ODFs written to disk.\n\n')

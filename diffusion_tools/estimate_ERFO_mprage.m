@@ -23,7 +23,7 @@
 % 
 
 
-function estimate_ERFO_mprage(data_file, target_file, affinematrixfile, bMatrices, user_options)
+  function estimate_ERFO_mprage(data_file, target_file, affinematrixfile, bMatrices, user_options)
 % Computes ODFs using ERFO. Saves the output in BrainSuite friendly format. 
 %
 %  No eddy current or motion correction.
@@ -39,7 +39,7 @@ workdir = tempname;
 mkdir(workdir);
 
 % setting up the defaults options
-opt = struct( ...
+opt = struct( ... 
    'HarmonicOrder', 8, ...
    'estimate_odf_ERFO', true, ...
    'diffusion_time', 2.5*10^-3, ...
@@ -47,7 +47,11 @@ opt = struct( ...
    'ERFO_out_dir', fullfile(fileparts(data_file), 'ERFO'), ...
    'mprage_coord_suffix', '.T1_coord', ...
    'bval_ratio_threshold', 45, ...
-   't1_mask_file', target_file ...
+   't1_mask_file', target_file, ...
+   'save_fib', false, ...
+   'run_dsi_studio', false, ...
+   'dsi_path',[], ...
+   'tracking_params', [] ...
     );
 
 fprintf('\nEstimating ERFO ODFs in T1-coordinate...');
@@ -68,6 +72,7 @@ end
 
 
 fname = fileBaseName(data_file);
+subname = fname;
 ERFO_output_file_base = fullfile(opt.ERFO_out_dir, fname);
 if opt.estimate_odf_ERFO && ~exist(opt.ERFO_out_dir, 'dir'), mkdir(opt.ERFO_out_dir); end
 
@@ -208,6 +213,7 @@ fprintf('\n');
 clear dwimages b0mean
 
 erfo_fid = fopen([ERFO_output_file_base '.SH.ERFO' opt.mprage_coord_suffix '.odf'], 'w');
+odf_fname = [subname '.SH.ERFO' opt.mprage_coord_suffix '.odf'];
 
 disp('Writing ERFO ODF files to disk...')
 temp3.img = zeros(target_vol_size);
@@ -220,6 +226,26 @@ for k = 1:size(sh_erfo,1),
 end
 fclose(erfo_fid);
 
+if opt.save_fib
+    disp('Writing ERFO ODF FIB files to disk...');
+    op = [ opt.ERFO_out_dir '_FIB']; mkdir(op);
+    opname = [subname '.SH.ERFO.FIB' opt.mprage_coord_suffix];
+    bsOdfFibFileFAST(target_file,opt.ERFO_out_dir,odf_fname,'./',op,opname,0,0,1,targetMask);
+end
+
+if opt.run_dsi_studio & opt.save_fib
+    if ~isempty(opt.dsi_path)
+        disp('Running DSI studio');
+    %     dsi_path = './dsi_studio_build';
+        op = opt.ERFO_out_dir;
+        opname = [subname '.SH.ERFO.TRK' opt.mprage_coord_suffix];
+        fib_file = [opt.ERFO_out_dir '_FIB/' subname '.SH.ERFO.FIB' opt.mprage_coord_suffix '.fib'];
+        DSI_tracking(fib_file, opt.tracking_params,opt.dsi_path,op,opname,opt);
+    else
+        msg = {'\n Skipping running tracking because DSI studio installation path is set to an empty string. Please check the installation path. You can re-run bdp with --tracking_only flag and run dsi studio tracking only.BDP will assume FIB file already exists and jump straight to tracking.', '\n'};
+        fprintf(bdp_linewrap(msg));  
+    end
+end
 rmdir(workdir, 's');
 fprintf('Estimated ERFO ODFs written to disk.\n\n')
 end

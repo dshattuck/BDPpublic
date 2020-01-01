@@ -387,7 +387,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
       ThreadArgs1[4]=Osize_d;      
       ThreadArgs1[5]=Nthreadsd;
       ThreadArgs1[6]=Tx;
-      /*ThreadArgs1[7]=Ty;*
+      /*ThreadArgs1[7]=Ty;*/ /* closed comment to remove warning during compilation - dws 11/27/19 */
       /*ThreadArgs1[8]=Tz;*/
       ThreadArgs1[7]=dxa;
       ThreadArgs1[8]=dya;
