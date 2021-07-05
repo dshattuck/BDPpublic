@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2019 The Regents of the University of California and
+% Copyright (C) 2021 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -69,7 +69,7 @@ if ismac
         'export XAPPLRESDIR;\n'];
     TESTMCR = sprintf('if [ ! -e ${BrainSuiteMCR}/runtime/maci64/libmwmclmcrrt.%s.dylib ]', mcrVersionDotStr);
     lib_Ext = '.dylib';
-    RUNCOMMAND = '${exe_dir}/bdp.app/Contents/MacOS/BrainSuite_Diffusion_pipeline "$@"';
+    RUNCOMMAND = '"${exe_dir}/bdp.app/Contents/MacOS/BrainSuite_Diffusion_pipeline" "$@"';
 
 else
     MCR_DIR   = ['/usr/local/MATLAB/' MCR_root_name '/v' mcrVersionStr];
@@ -88,7 +88,7 @@ else
         'export XAPPLRESDIR;\n'];
     TESTMCR = sprintf('if [ ! -e ${BrainSuiteMCR}/runtime/glnxa64/libmwmclmcrrt.so.%s ]', mcrVersionDotStr);
     lib_Ext = '';
-    RUNCOMMAND = '${exe_dir}/bdp "$@"';  % before - $args';
+    RUNCOMMAND = '"${exe_dir}/bdp" "$@"';  % before - $args';
 end
 
 
