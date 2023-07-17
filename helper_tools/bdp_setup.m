@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2021 The Regents of the University of California and
+% Copyright (C) 2023 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -132,6 +132,7 @@ bdp_options = struct( ...
    'custom_diffusion_surface', [], ...
    ...
    ...
+   'mask_only', false, ...
    'pngout', false, ...
    'clean_files', true, ...
    'verbose', false, ...
@@ -285,7 +286,10 @@ while iflag <= nflags
                end
             end                                    
          end
-         
+      
+      case '--mask-only'
+         bdp_options.mask_only = true;
+
       case '--low-memory'
          bdp_options.pngout = false;
          bdp_options.low_memory = true;

@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2021 The Regents of the University of California and
+% Copyright (C) 2023 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -24,7 +24,7 @@
 
 
 % Calculates Generalized Laguerre polynomial
-% Szeg�: Orthogonal Polynomials, 1958, (5.1.10)
+% Szegö: Orthogonal Polynomials, 1958, (5.1.10)
 function L = laguerrePoly(n,a,x)
 l=zeros(n+1);          
 if(n==0)

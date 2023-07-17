@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2021 The Regents of the University of California and
+% Copyright (C) 2023 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -83,8 +83,8 @@ end
 
 
 if compile
-   if ispc
-      mcc -m -v BrainSuite_Diffusion_pipeline.m -a ..\mat_files\*
+   if true
+      mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
       % mcc -m -v dicom2nifti_Diffusion.m
       % mcc -m -v coregister_diffusion_mprage_pipeline -a ..\mat_files\*
       % mcc -m -v estimate_SH_FRT_FRACT_mprage
@@ -98,25 +98,28 @@ if compile
       %       % mcc -m -v estimate_tensors_mprage
       
    else % both Linux and Mac
+		mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
+    %dws 11-Apr-2023 : the code below fails after source code packaging
+
       % Somehow mcc does not work from matlab in all of USC *nix computers! But it does work from
       % Unix command prompt. It uses mcc executable at [matlabroot() '/bin/mcc']
       
-      bdp_path = search_rmpath('brainsuite-diffusion-pipeline');
-      cmd_str = ['-I ' bdp_path];
-      cmd_str = strrep(cmd_str, pathsep, ' -I ');
-      cmd_str = [matlabroot(), '/bin/mcc -m ' cmd_str ' -v BrainSuite_Diffusion_pipeline.m '];
+      % bdp_path = search_rmpath('brainsuite-diffusion-pipeline');
+      % cmd_str = ['-I ' bdp_path];
+      % cmd_str = strrep(cmd_str, pathsep, ' -I ');
+      % cmd_str = [matlabroot(), '/bin/mcc -m ' cmd_str ' -v BrainSuite_Diffusion_pipeline.m '];
       
-      mat_dir = [pwd '/../mat_files'];
-      listing = dir(mat_dir);
-      if length(listing)>2
-         mat_str = [];
-         for k = 3:length(listing)
-            mat_str = [mat_str ' -a ' fullfile(mat_dir, listing(k).name)];
-         end
-         cmd_str = [cmd_str mat_str];
-      end
-      [status, result] = system(cmd_str,'-echo');
-      addpath(bdp_path);
+      % mat_dir = [pwd '/../mat_files'];
+      % listing = dir(mat_dir);
+      % if length(listing)>2
+      %    mat_str = [];
+      %    for k = 3:length(listing)
+      %       mat_str = [mat_str ' -a ' fullfile(mat_dir, listing(k).name)];
+      %    end
+      %    cmd_str = [cmd_str mat_str];
+      % end
+      % [status, result] = system(cmd_str,'-echo');
+      % addpath(bdp_path);
    end
    
    disp('Compiling done');
@@ -255,6 +258,12 @@ fin = fopen(fullfile('..', 'README.txt'), 'r');
 str_match = 'Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar,';
 while ~feof(fin)
    tline = fgetl(fin);
+   if (startsWith(tline,'This is release'))
+      tline = fgetl(fin);
+      if (tline=="")
+         continue;
+      end;
+   end
    if strcmp(tline, str_match)
       fprintf(fot, 'This is version %s (build #%04d) of BDP, released on %s.\n\n', bdp_version, buildNo, datestr(now, 'dd-mmm-yyyy'));
    end

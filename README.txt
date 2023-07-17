@@ -8,6 +8,8 @@ statistic. BDP is flexible and diverse tool which supports wide variety of
 diffusion datasets. For more information and detailed documentation, please 
 see BDP website: http://brainsuite.org/processing/diffusion/
 
+This is release 23a (17-Jul-2023) of BDP.
+
 Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar,
            Anand A. Joshi,  David W. Shattuck, and Richard M. Leahy
 
@@ -27,10 +29,10 @@ to generate executables and packages. Both steps are performed from MATLAB
 command prompt.
 
 BDP requires working installations of following for building the binaries:
-   - MATLAB 2015b: http://www.mathworks.com/products/matlab/
+   - MATLAB 2023a: http://www.mathworks.com/products/matlab/
    - Image Processing Toolbox: http://www.mathworks.com/products/image/
    - MATLAB Compiler: http://www.mathworks.com/products/compiler/
-   - A supported C/C++ Compiler: http://www.mathworks.com/support/compilers/R2015b/index.html
+   - A supported C/C++ Compiler: https://www.mathworks.com/support/requirements/supported-compilers.html
 
 First open MATLAB and navigate to the `<BDP>/packaging_tools` folder of the 
 source code. Then, Compile the c/mex files by running following on the MATLAB

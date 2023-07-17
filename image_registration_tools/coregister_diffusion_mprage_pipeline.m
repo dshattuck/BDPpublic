@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2021 The Regents of the University of California and
+% Copyright (C) 2023 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -209,172 +209,175 @@ fprintf('\nExtracting 0-diffusion (b=0) image from input DWIs...');
 [dwi_rearranged_b0_file, dwi_mask_file, dwi_mask_less_csf_file] = ...
    mask_b0_setup(dwi_filename, opt, bmat_file, workDir);
 
-
-%% Distortion correction
-if opt.fieldmap_distortion_correction
-   fprintf('Performing distortion correction using fieldmap...');      
-   opt.fieldmap_options.mask = dwi_mask_file;
-   opt.fieldmap_options.b0_file = dwi_rearranged_b0_file;
-   dwi_correct_filename = [remove_extension(dwi_filename) opt.dwi_corrected_suffix '.nii.gz'];
-   EPI_correct_file_fieldmap(dwi_filename, opt.fieldmap_options.field_filename, dwi_correct_filename, opt.fieldmap_options)
-   
-   fprintf('\nCorrecting DWI mask...'); 
-   dwi_mask_correct_fname = suffix_filename(dwi_mask_file, opt.dwi_corrected_suffix);
-   opt.fieldmap_options.checkFOV = false;
-   opt.fieldmap_options.leastsq_sol = false;
-   EPI_correct_file_fieldmap(dwi_mask_file, opt.fieldmap_options.field_filename, dwi_mask_correct_fname, opt.fieldmap_options)
-   temp_msk = load_untouch_nii_gz(dwi_mask_correct_fname);
-   temp_msk.img = (temp_msk.img>170)*255; % only use voxels with high value
-   save_untouch_nii_gz(temp_msk, dwi_mask_correct_fname);
-   dwi_mask_file = dwi_mask_correct_fname;
-   
-   fprintf('\nDistortion correction finished.\n');
-   
-elseif opt.registration_distortion_correction
-   fprintf('\n\nStarting Registration based distortion Correction...\n');
-   dwi_correct_filename = [remove_extension(dwi_filename) opt.dwi_corrected_suffix '.nii.gz'];
-   struct_output_filename = [file_base '.bfc' opt.Diffusion_coord_suffix '.nii.gz'];
-   opt.registration_distortion_corr_options.epi_mask = dwi_mask_file;
-   opt.registration_distortion_corr_options.epi_mask_less_csf = dwi_mask_less_csf_file;
-   
-   if strcmpi(opt.registration_correction_method, 'mi')
-      EPI_correct_files_registration_BDP17(dwi_rearranged_b0_file, bfc_filename, dwi_correct_filename, struct_output_filename, ...
-         opt.registration_distortion_corr_options);
-   else
-      EPI_correct_files_registration_INVERSION(dwi_rearranged_b0_file, bfc_filename, dwi_correct_filename, struct_output_filename, ...
-         opt.registration_distortion_corr_options);
-   end
-   
-   % distortion correct (warp) all diffusion images
-   fprintf('\nCorrecting all diffusion images for distortion...\n')
-   t_epi = load_untouch_nii_gz([remove_extension(dwi_correct_filename) '.distortion.map.nii.gz'], true, workDir);
-   DWI_orig = load_untouch_nii_gz(dwi_filename, true, workDir);
-   
-   [x_g, y_g, z_g] = ndgrid(1:size(DWI_orig.img,1), 1:size(DWI_orig.img,2), 1:size(DWI_orig.img,3));
-   switch opt.phase_encode_direction
-      case {'x', 'x-'}
-         x_g = x_g + t_epi.img;
-         if opt.intensity_correct
-            [~, crct_grd] = gradient(t_epi.img);
-         end
-      case {'y', 'y-'}
-         y_g = y_g + t_epi.img;
-         if opt.intensity_correct
-            [crct_grd] = gradient(t_epi.img);
-         end
-      case {'z', 'z-'}
-         z_g = z_g + t_epi.img;
-         if opt.intensity_correct
-            [~, ~, crct_grd] = gradient(t_epi.img);
-         end
-   end
-   
-%    moving_out = DWI_orig;
-%    moving_out.img = zeros(size(DWI_orig.img));
-   cpb = ConsoleProgressBar(); % Set progress bar parameters
-   cpb.setMinimum(1);
-   cpb.setMaximum(size(DWI_orig.img,4));
-   cpb.start();
-   for k = 1:size(DWI_orig.img,4)
-      DWI_orig.img(:,:,:,k) = interpn(double(DWI_orig.img(:,:,:,k)), x_g, y_g, z_g, 'cubic', 0);
-      if opt.intensity_correct
-         DWI_orig.img(:,:,:,k) = double(DWI_orig.img(:,:,:,k)) .* (1+crct_grd);
-      end
-      text = sprintf('%d/%d volumes done', k, size(DWI_orig.img,4));
-      cpb.setValue(k); cpb.setText(text);
-   end
-   cpb.stop();
-   
-   % save corrected data
-   disp('Saving corrected diffusion data...')
-   DWI_orig.hdr.dime.scl_slope = 0;
-   DWI_orig.hdr.dime.scl_inter = 0;
-   save_untouch_nii_gz(DWI_orig, dwi_correct_filename, workDir);
-   clear DWI_orig crct_grd x_g y_g z_g t_epi DWI_orig_res
-   fprintf('\nDistortion correction finished.\n');
+if opt.mask_only
+   disp('Since --mask-only was applied, BDP quitting after generating DWI mask...'); 
 else
-   dwi_correct_filename = dwi_filename;
-   fprintf('Distortion Correction skipped.\n');
-end
-clear struct_output_filename
-
-% extract corrected b=0 image from corrected DWIs
-if opt.fieldmap_distortion_correction || opt.registration_distortion_correction
-   DEout = checkDiffusionEncodingScheme(bmat_file, opt.bval_ratio_threshold);
-   num_b0s = sum(DEout.zero_bval_mask);
-   fprintf('Extracting distortion corrected 0-diffusion (b=0) image...');
-   dwi_rearranged_b0_file = [remove_extension(dwi_correct_filename) '.rearranged.b0s.nii.gz'];
-   dwi = load_untouch_nii_gz(dwi_correct_filename, workDir);
-   b0s = dwi;
-   b0s.img = dwi.img(:,:,:,DEout.zero_bval_mask);
-   b0s.hdr.dime.dim(5) = num_b0s;
-   save_untouch_nii_gz(b0s, dwi_rearranged_b0_file, workDir);
-   clear dwi b0s
-   fprintf('Done\n');
-end
-
-%% - - - - Rigid Register volumes - - - - %
-if ~opt.registration_distortion_correction
-   reg_options = struct( ...
-      'moving_mask', opt.t1_mask_file, ...
-      'static_mask', dwi_mask_file, ...
-      'pngout', opt.pngout, ...
-      'verbose', opt.verbose, ...
-      'similarity', opt.rigid_similarity, ...
-      'dof', 6,...
-      'nthreads', opt.num_threads);
-   
-   output_filename = [file_base '.bfc' opt.Diffusion_coord_suffix '.nii.gz'];   
-   register_files_affine(bfc_filename, dwi_rearranged_b0_file, output_filename, reg_options);
-   
-   clear output_filename reg_options moving_file static_file
-end
-
-
-%% - - - - Transfer data to/from diffusion-mprage coordinate - - - - %
-fprintf('\nTransferring data to mprage/diffusion coordinate...');
-
-affinematrix_file = [file_base '.bfc' opt.Diffusion_coord_suffix '.rigid_registration_result.mat'];
-
-% diffusion to mprage coordinate
-out_file = [remove_extension(dwi_correct_filename) '.0_diffusion' opt.mprage_coord_suffix '.nii.gz'];
-transfer_diffusion_to_T1(dwi_rearranged_b0_file, dwi_rearranged_b0_file, bfc_filename, affinematrix_file, ...
-                         out_file, 'cubic');
-                      
-% mprage to diffusion coordinate
-[~, nm, ext] = fileparts(opt.t1_mask_file);
-struct_output_filename = fullfile(fileparts(file_base), suffix_filename([nm ext], opt.Diffusion_coord_suffix));
-transfer_T1_to_diffusion(opt.t1_mask_file, bfc_filename, dwi_rearranged_b0_file, affinematrix_file, ...
-   struct_output_filename, 'nearest');
-
-unmasked_struct_file = [opt.bfc_file_base '.nii.gz'];
-if ~exist(unmasked_struct_file, 'file')
-   unmasked_struct_file = [opt.bfc_file_base '.nii'];
-end
-if exist(unmasked_struct_file, 'file')==2   
-   if ~isfield(opt.input_filenames, 'dwi_file') ...
-         || ~strcmp(opt.input_filenames.dwi_file, unmasked_struct_file) % dwi file does NOT match unmasked_struct_file
-      struct_output_filename = [file_base opt.Diffusion_coord_suffix '.nii.gz'];
-      transfer_T1_to_diffusion(unmasked_struct_file, bfc_filename, dwi_rearranged_b0_file, affinematrix_file, ...
-         struct_output_filename, 'cubic');
+   %% Distortion correction
+   if opt.fieldmap_distortion_correction
+      fprintf('Performing distortion correction using fieldmap...');      
+      opt.fieldmap_options.mask = dwi_mask_file;
+      opt.fieldmap_options.b0_file = dwi_rearranged_b0_file;
+      dwi_correct_filename = [remove_extension(dwi_filename) opt.dwi_corrected_suffix '.nii.gz'];
+      EPI_correct_file_fieldmap(dwi_filename, opt.fieldmap_options.field_filename, dwi_correct_filename, opt.fieldmap_options)
+      
+      fprintf('\nCorrecting DWI mask...'); 
+      dwi_mask_correct_fname = suffix_filename(dwi_mask_file, opt.dwi_corrected_suffix);
+      opt.fieldmap_options.checkFOV = false;
+      opt.fieldmap_options.leastsq_sol = false;
+      EPI_correct_file_fieldmap(dwi_mask_file, opt.fieldmap_options.field_filename, dwi_mask_correct_fname, opt.fieldmap_options)
+      temp_msk = load_untouch_nii_gz(dwi_mask_correct_fname);
+      temp_msk.img = (temp_msk.img>170)*255; % only use voxels with high value
+      save_untouch_nii_gz(temp_msk, dwi_mask_correct_fname);
+      dwi_mask_file = dwi_mask_correct_fname;
+      
+      fprintf('\nDistortion correction finished.\n');
+      
+   elseif opt.registration_distortion_correction
+      fprintf('\n\nStarting Registration based distortion Correction...\n');
+      dwi_correct_filename = [remove_extension(dwi_filename) opt.dwi_corrected_suffix '.nii.gz'];
+      struct_output_filename = [file_base '.bfc' opt.Diffusion_coord_suffix '.nii.gz'];
+      opt.registration_distortion_corr_options.epi_mask = dwi_mask_file;
+      opt.registration_distortion_corr_options.epi_mask_less_csf = dwi_mask_less_csf_file;
+      
+      if strcmpi(opt.registration_correction_method, 'mi')
+         EPI_correct_files_registration_BDP17(dwi_rearranged_b0_file, bfc_filename, dwi_correct_filename, struct_output_filename, ...
+            opt.registration_distortion_corr_options);
+      else
+         EPI_correct_files_registration_INVERSION(dwi_rearranged_b0_file, bfc_filename, dwi_correct_filename, struct_output_filename, ...
+            opt.registration_distortion_corr_options);
+      end
+      
+      % distortion correct (warp) all diffusion images
+      fprintf('\nCorrecting all diffusion images for distortion...\n')
+      t_epi = load_untouch_nii_gz([remove_extension(dwi_correct_filename) '.distortion.map.nii.gz'], true, workDir);
+      DWI_orig = load_untouch_nii_gz(dwi_filename, true, workDir);
+      
+      [x_g, y_g, z_g] = ndgrid(1:size(DWI_orig.img,1), 1:size(DWI_orig.img,2), 1:size(DWI_orig.img,3));
+      switch opt.phase_encode_direction
+         case {'x', 'x-'}
+            x_g = x_g + t_epi.img;
+            if opt.intensity_correct
+               [~, crct_grd] = gradient(t_epi.img);
+            end
+         case {'y', 'y-'}
+            y_g = y_g + t_epi.img;
+            if opt.intensity_correct
+               [crct_grd] = gradient(t_epi.img);
+            end
+         case {'z', 'z-'}
+            z_g = z_g + t_epi.img;
+            if opt.intensity_correct
+               [~, ~, crct_grd] = gradient(t_epi.img);
+            end
+      end
+      
+   %    moving_out = DWI_orig;
+   %    moving_out.img = zeros(size(DWI_orig.img));
+      cpb = ConsoleProgressBar(); % Set progress bar parameters
+      cpb.setMinimum(1);
+      cpb.setMaximum(size(DWI_orig.img,4));
+      cpb.start();
+      for k = 1:size(DWI_orig.img,4)
+         DWI_orig.img(:,:,:,k) = interpn(double(DWI_orig.img(:,:,:,k)), x_g, y_g, z_g, 'cubic', 0);
+         if opt.intensity_correct
+            DWI_orig.img(:,:,:,k) = double(DWI_orig.img(:,:,:,k)) .* (1+crct_grd);
+         end
+         text = sprintf('%d/%d volumes done', k, size(DWI_orig.img,4));
+         cpb.setValue(k); cpb.setText(text);
+      end
+      cpb.stop();
+      
+      % save corrected data
+      disp('Saving corrected diffusion data...')
+      DWI_orig.hdr.dime.scl_slope = 0;
+      DWI_orig.hdr.dime.scl_inter = 0;
+      save_untouch_nii_gz(DWI_orig, dwi_correct_filename, workDir);
+      clear DWI_orig crct_grd x_g y_g z_g t_epi DWI_orig_res
+      fprintf('\nDistortion correction finished.\n');
+   else
+      dwi_correct_filename = dwi_filename;
+      fprintf('Distortion Correction skipped.\n');
    end
-   
-else  % original MPRAGE not found
-   [~, fName, ~] = fileparts(unmasked_struct_file);
-   fName = remove_extension(fName);
-   msg = {'\n', ['BDP could not transfer original unmasked MPRAGE to diffusion coordinates, as it was unable to find '...
-      'the original MPRAGE file: ' escape_filename(fName) '.nii OR ' escape_filename(fName) '.nii.gz\n']};
-   fprintf(bdp_linewrap(msg));
-   
-end
-clear temp struct_output_filename
+   clear struct_output_filename
 
-% copy D_coord files to d_coord output, if applicable
-if opt.diffusion_coord_outputs
-   copyfile([opt.file_base_name '*' opt.Diffusion_coord_suffix '*.nii.gz'], opt.diffusion_coord_output_folder)
-end
+   % extract corrected b=0 image from corrected DWIs
+   if opt.fieldmap_distortion_correction || opt.registration_distortion_correction
+      DEout = checkDiffusionEncodingScheme(bmat_file, opt.bval_ratio_threshold);
+      num_b0s = sum(DEout.zero_bval_mask);
+      fprintf('Extracting distortion corrected 0-diffusion (b=0) image...');
+      dwi_rearranged_b0_file = [remove_extension(dwi_correct_filename) '.rearranged.b0s.nii.gz'];
+      dwi = load_untouch_nii_gz(dwi_correct_filename, workDir);
+      b0s = dwi;
+      b0s.img = dwi.img(:,:,:,DEout.zero_bval_mask);
+      b0s.hdr.dime.dim(5) = num_b0s;
+      save_untouch_nii_gz(b0s, dwi_rearranged_b0_file, workDir);
+      clear dwi b0s
+      fprintf('Done\n');
+   end
 
-fprintf('\nFinished transferring data to mprage/diffusion coordinate\n');
+   %% - - - - Rigid Register volumes - - - - %
+   if ~opt.registration_distortion_correction
+      reg_options = struct( ...
+         'moving_mask', opt.t1_mask_file, ...
+         'static_mask', dwi_mask_file, ...
+         'pngout', opt.pngout, ...
+         'verbose', opt.verbose, ...
+         'similarity', opt.rigid_similarity, ...
+         'dof', 6,...
+         'nthreads', opt.num_threads);
+      
+      output_filename = [file_base '.bfc' opt.Diffusion_coord_suffix '.nii.gz'];   
+      register_files_affine(bfc_filename, dwi_rearranged_b0_file, output_filename, reg_options);
+      
+      clear output_filename reg_options moving_file static_file
+   end
+
+
+   %% - - - - Transfer data to/from diffusion-mprage coordinate - - - - %
+   fprintf('\nTransferring data to mprage/diffusion coordinate...');
+
+   affinematrix_file = [file_base '.bfc' opt.Diffusion_coord_suffix '.rigid_registration_result.mat'];
+
+   % diffusion to mprage coordinate
+   out_file = [remove_extension(dwi_correct_filename) '.0_diffusion' opt.mprage_coord_suffix '.nii.gz'];
+   transfer_diffusion_to_T1(dwi_rearranged_b0_file, dwi_rearranged_b0_file, bfc_filename, affinematrix_file, ...
+                           out_file, 'cubic');
+                        
+   % mprage to diffusion coordinate
+   [~, nm, ext] = fileparts(opt.t1_mask_file);
+   struct_output_filename = fullfile(fileparts(file_base), suffix_filename([nm ext], opt.Diffusion_coord_suffix));
+   transfer_T1_to_diffusion(opt.t1_mask_file, bfc_filename, dwi_rearranged_b0_file, affinematrix_file, ...
+      struct_output_filename, 'nearest');
+
+   unmasked_struct_file = [opt.bfc_file_base '.nii.gz'];
+   if ~exist(unmasked_struct_file, 'file')
+      unmasked_struct_file = [opt.bfc_file_base '.nii'];
+   end
+   if exist(unmasked_struct_file, 'file')==2   
+      if ~isfield(opt.input_filenames, 'dwi_file') ...
+            || ~strcmp(opt.input_filenames.dwi_file, unmasked_struct_file) % dwi file does NOT match unmasked_struct_file
+         struct_output_filename = [file_base opt.Diffusion_coord_suffix '.nii.gz'];
+         transfer_T1_to_diffusion(unmasked_struct_file, bfc_filename, dwi_rearranged_b0_file, affinematrix_file, ...
+            struct_output_filename, 'cubic');
+      end
+      
+   else  % original MPRAGE not found
+      [~, fName, ~] = fileparts(unmasked_struct_file);
+      fName = remove_extension(fName);
+      msg = {'\n', ['BDP could not transfer original unmasked MPRAGE to diffusion coordinates, as it was unable to find '...
+         'the original MPRAGE file: ' escape_filename(fName) '.nii OR ' escape_filename(fName) '.nii.gz\n']};
+      fprintf(bdp_linewrap(msg));
+      
+   end
+   clear temp struct_output_filename
+
+   % copy D_coord files to d_coord output, if applicable
+   if opt.diffusion_coord_outputs
+      copyfile([opt.file_base_name '*' opt.Diffusion_coord_suffix '*.nii.gz'], opt.diffusion_coord_output_folder)
+   end
+
+   fprintf('\nFinished transferring data to mprage/diffusion coordinate\n');
+end
 
 %% File cleanup
 if opt.clean_files
@@ -424,8 +427,9 @@ end
 %%
 
 rmdir(workDir, 's');
-fprintf('\nCoregisteration of Diffusion and MPRAGE is done!\n\n')
-
+if ~opt.mask_only
+   fprintf('\nCoregisteration of Diffusion and MPRAGE is done!\n\n')
+end
 end
 
 

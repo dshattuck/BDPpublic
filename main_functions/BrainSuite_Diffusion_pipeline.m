@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2021 The Regents of the University of California and
+% Copyright (C) 2023 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -43,6 +43,12 @@ try
       if opts.no_structural_registration
          [dwi_corr_file, bmat_file] = reorientDWI_BDP(opts.dwi_file, ...
             [opts.file_base_name opts.dwi_fname_suffix '.RAS.nii.gz'], opts.bmat_file, opts);
+         if opts.mask_only
+              % [dwi_corr_file, bmat_file] = % <- these variables don't get set, so this would cause an error
+              coregister_diffusion_mprage_pipeline(opts);
+              disp('exiting after computing mask');
+              return
+          end
          if opts.fieldmap_distortion_correction
             dwi_corr_file = fmap_correction_no_structural_registration(dwi_corr_file, opts);
          end

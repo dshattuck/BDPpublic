@@ -1,7 +1,7 @@
 % 
 % BDP BrainSuite Diffusion Pipeline
 % 
-% Copyright (C) 2021 The Regents of the University of California and
+% Copyright (C) 2023 The Regents of the University of California and
 % the University of Southern California
 % 
 % Created by Chitresh Bhushan, Divya Varadarajan, Justin P. Haldar, Anand A. Joshi,
@@ -45,6 +45,11 @@ if mcrUpdate > 0
 end
 
 switch matlabReleaseStr
+
+    case 'R2023a'
+        MCR_root_name = 'MATLAB_Runtime';        
+    case 'R2022a'
+        MCR_root_name = 'MATLAB_Runtime';        
     case 'R2015b'
         MCR_root_name = 'MATLAB_Runtime';
     case 'R2019b'
@@ -53,7 +58,8 @@ switch matlabReleaseStr
         MCR_root_name = 'MATLAB_Compiler_Runtime';
         
     otherwise
-        error('Shell-script creation is not supported on this Matlab release: %s\n', matlabReleaseStr)
+				MCR_root_name = 'MATLAB_Runtime'; 
+        warning('Shell-script creation may not be supported in this Matlab release: %s\n', matlabReleaseStr)
 end
 
 
