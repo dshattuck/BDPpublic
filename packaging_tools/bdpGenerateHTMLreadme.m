@@ -38,9 +38,15 @@ usage_msg = bdp_usage(manifestFile);
 usage_table = bdp_usage_toTable();
 
 ind1 = strfind(usage_msg, 'Usage:');
+if ~isempty(ind1)
+    ind1 = ind1(1); 
+end
 version_info = deblank(sprintf(usage_msg(1:ind1-1)));
 
 ind2 = strfind(usage_msg, '--help');
+if ~isempty(ind2)
+    ind2 = ind2(1); 
+end
 cmd_usage = deblank(sprintf(usage_msg(ind1+7:ind2+5)));
 
 usage_txt = ['<h2>Usage</h2>\n<p>' version_info '</p>\n<pre>' htmlEncode(cmd_usage) '</pre><br>\n' ...
