@@ -104,8 +104,25 @@ jobs:
         with:
           startup-options: -sd packaging_tools
           command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.SHORT_SHA }} --lic GPL"
+
+      - name: Prepare for Artifact
+        if: github.event_name != 'release'
+        shell: bash
+        run:
+          BASENAME=$(basename "$PACKAGE_PATH")
+          echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
+
+      - name: Save Build as Artifact
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          # path: buildGUI/DRViewer 
+          path: ${{ env.Package }}
+          overwrite: true
           
       - name: Publish ${{ env.Package }}
+        if: github.event_name == 'release'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "${{ env.Package }}"
