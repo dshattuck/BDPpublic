@@ -98,7 +98,7 @@ jobs:
         shell: bash
         run:
           BASENAME=$(basename "$PACKAGE_PATH")
-          echo $BASENAME
+          echo "basename=$BASENAME"
           echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
           
       - name: compile BDP Mex files
