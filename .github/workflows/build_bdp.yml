@@ -92,7 +92,15 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_win64.zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        
+
+      - name: Prepare for Artifact
+        if: github.event_name != 'release'
+        shell: bash
+        run:
+          BASENAME=$(basename "$PACKAGE_PATH")
+          echo $BASENAME
+          echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
+          
       - name: compile BDP Mex files
         uses: matlab-actions/run-command@v3
         with:
