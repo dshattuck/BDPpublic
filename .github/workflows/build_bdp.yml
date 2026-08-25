@@ -101,7 +101,7 @@ jobs:
         uses: matlab-actions/run-command@v3
         with:
           startup-options: -sd packaging_tools
-          command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.LOCAL_SHA }} --lic GPL"
+          command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.SHORT_SHA }} --lic GPL"
           
       - name: Publish ${{ env.Package }}
         uses: ncipollo/release-action@v1
