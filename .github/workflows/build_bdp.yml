@@ -27,6 +27,7 @@ jobs:
 
     steps:
       - name: Going out to clean
+        if: runner.os != 'Windows'
         run: |
           echo "Before cleanup:"
           df -h
