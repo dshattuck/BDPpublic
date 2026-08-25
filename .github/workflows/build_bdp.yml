@@ -46,7 +46,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v3
         with:
           release: R2025b
-          cache: true
+          cache: ${{ matrix.enable_cache }}
           products: >
             MATLAB_Compiler
             Image_Processing_Toolbox
