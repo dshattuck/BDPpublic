@@ -7,6 +7,7 @@ env:
   VERSION: 26a_RC1
   BUILD_NO: 9999
   MLM_LICENSE_TOKEN: ${{ secrets.MATLAB_TOKEN }}
+  
 jobs:
   build:
     permissions: write-all
@@ -14,14 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [macos-15]
-        # os: [ubuntu-latest, windows-latest, macos-13]
-        # os: [ubuntu-latest]
-        os: [windows-latest, macos-26, macos-26-intel]
-        # arch: [X64]
-        # include:
-        # - os: macos
-        #   arch: ARM64
+        include:
+          - os: ubuntu-latest
+            enable_cache: true
+          - os: windows-latest
+            enable_cache: true
+          - os: macos-26
+            enable_cache: false
+          - os: macos-26-intel
+            enable_cache: true
+
     runs-on:
       labels: ["${{ matrix.os }}" ]
 
