@@ -4,7 +4,6 @@ run-name: Build BDP by @${{ github.actor }}
 on: [workflow_dispatch, push]
 env:
   VERSION: 26a_RC1
-  BUILD_HASH: 9999
   MLM_LICENSE_TOKEN: ${{ secrets.MATLAB_TOKEN }}
   
 jobs:
@@ -45,7 +44,7 @@ jobs:
         run: |
           LOCAL_SHA=${GITHUB_SHA::7}        
           echo "SHORT_SHA=${LOCAL_SHA}" >> $GITHUB_ENV
-          echo "BUILD_STR=bdp_${{ env.VERSION }}_build_${SHORT_SHA}" >> $GITHUB_ENV
+          echo "BUILD_STR=bdp_${{ env.VERSION }}_build_${LOCAL_SHA}" >> $GITHUB_ENV
 
       - name: Check out repository
         uses: actions/checkout@v6
