@@ -17,7 +17,7 @@ jobs:
         # os: [macos-15]
         # os: [ubuntu-latest, windows-latest, macos-13]
         # os: [ubuntu-latest]
-        os: [windows-latest]
+        os: [windows-latest, macos-26, macos-26-intel]
         # arch: [X64]
         # include:
         # - os: macos
@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Going out to clean
-        if: runner.os != 'Windows'
+        if: runner.os == 'Linux'
         run: |
           echo "Before cleanup:"
           df -h
