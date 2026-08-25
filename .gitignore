@@ -1,0 +1,12 @@
+*.mexa64
+*.tar.gz
+*.app
+*.exe
+packaging_tools/BrainSuite_Diffusion_pipeline
+buildresult.json
+includedSupportPackages.txt
+packaging_tools/readme.txt
+packaging_tools/requiredMCRProducts.txt
+packaging_tools/unresolvedSymbols.txt
+packaging_tools/mccExcludedFiles.log
+packaging_tools/run_BrainSuite_Diffusion_pipeline.sh
