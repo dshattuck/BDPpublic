@@ -3,7 +3,8 @@ run-name: Build BDP by @${{ github.actor }}
 
 on: [workflow_dispatch, push]
 env:
-  VERSION: 26a_RC1
+  DEV_VERSION: 26a_dev
+  REF_NAME: ${{ github.ref_name }}  
   MLM_LICENSE_TOKEN: ${{ secrets.MATLAB_TOKEN }}
   
 jobs:
@@ -38,6 +39,17 @@ jobs:
           sudo rm -rf /opt/ghc
           echo "After cleanup:"
           df -h
+
+      - name: Set release version
+        if: github.event_name == 'release'
+        run:
+          echo "VERSION=${REF_NAME}" >> $GITHUB_ENV
+
+      - name: Set release version
+        if: github.event_name == 'release'
+        run:
+          echo "VERSION=${DEV_VERSION}" >> $GITHUB_ENV
+
 
       - name: Set Global Build Identifier
         shell: bash
@@ -85,15 +97,15 @@ jobs:
           startup-options: -sd packaging_tools
           command: CompileBDPMexFiles
           
-      - name: compile BDP Mex files
+      - name: compile BDP
         uses: matlab-actions/run-command@v3
         with:
           startup-options: -sd packaging_tools
-          command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.BUILD_HASH }} --lic GPL"
+          command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.LOCAL_SHA }} --lic GPL"
           
       - name: Publish ${{ env.Package }}
         uses: ncipollo/release-action@v1
         with:
           artifacts: "${{ env.Package }}"
-          tag: v${{ env.VERSION }}        
+          tag: ${{ env.VERSION }}        
           allowUpdates: true
