@@ -109,7 +109,7 @@ jobs:
         if: github.event_name != 'release'
         shell: bash
         run:
-          BASENAME=$(basename "$Package ")
+          BASENAME=$(basename "$Package")
           echo "ArtifactName=$BASENAME" >> $GITHUB_ENV
 
       - name: Save Build as Artifact
