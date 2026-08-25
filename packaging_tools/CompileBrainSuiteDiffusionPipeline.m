@@ -22,7 +22,7 @@
 % USA.
 % 
 
-
+% dws 24Aug2026 - removing build number from comparison because we have switched to git hashes
 function CompileBrainSuiteDiffusionPipeline(varargin)
 % Usage: 
 %    CompileBrainSuiteDiffusionPipeline 
@@ -57,10 +57,11 @@ elseif nargin>0
             
          case '--build'
             package = true;
-            buildNo = str2double(varargin{i+1});
-            if ~isequal(buildNo, int16(buildNo))
-               error('build number must be integer!')
-            end
+            buildHash = varargin{i+1}
+            % str2double(varargin{i+1});
+            % if ~isequal(buildNo, int16(buildNo))
+            %    error('build number must be integer!')
+            % end
             i = i + 2;
             
          case '--no-compile'
@@ -129,19 +130,19 @@ end
 if package
    disp('Starting packaging');
    if ispc
-      package_bdp_pc(bdp_version, buildNo, lic);
+      package_bdp_pc(bdp_version, buildHash, lic);
    elseif ismac
-      package_bdp_mac(bdp_version, buildNo, lic);
+      package_bdp_mac(bdp_version, buildHash, lic);
    else
-      package_bdp_linux(bdp_version, buildNo, lic);
+      package_bdp_linux(bdp_version, buildHash, lic);
    end
    disp('Packaging done.');
 end
 end
 
 
-function package_bdp_pc(bdp_version, buildNo, lic)
-workdir = setup_package(bdp_version, buildNo, lic);
+function package_bdp_pc(bdp_version, buildHash, lic)
+workdir = setup_package(bdp_version, buildHash, lic);
 
 copyfile('BrainSuite_Diffusion_pipeline.exe', [workdir filesep 'bdp.exe']);
 
@@ -150,8 +151,8 @@ rmdir(workdir, 's');
 end
 
 
-function package_bdp_linux(bdp_version, buildNo, lic)
-workdir = setup_package(bdp_version, buildNo, lic);
+function package_bdp_linux(bdp_version, buildHash, lic)
+workdir = setup_package(bdp_version, buildHash, lic);
 
 copyfile('BrainSuite_Diffusion_pipeline', [workdir filesep 'bdp']);
 bdp_create_shell_script([workdir filesep 'bdp.sh'], [workdir filesep 'bdpmanifest.xml']);
@@ -163,8 +164,8 @@ rmdir(workdir, 's');
 end
 
 
-function package_bdp_mac(bdp_version, buildNo, lic)
-workdir = setup_package(bdp_version, buildNo, lic);
+function package_bdp_mac(bdp_version, buildHash, lic)
+workdir = setup_package(bdp_version, buildHash, lic);
 
 copyfile('BrainSuite_Diffusion_pipeline.app', [workdir filesep 'bdp.app']);
 bdp_create_shell_script([workdir filesep 'bdp.sh'], [workdir filesep 'bdpmanifest.xml']);
@@ -176,13 +177,13 @@ rmdir(workdir, 's');
 end
 
 
-function directory = setup_package(bdp_version, buildNo, lic)
+function directory = setup_package(bdp_version, buildHash, lic)
 bdp_string = strrep(num2str(bdp_version), '.', 'p');
-directory =  sprintf('bdp_%s_build%04d_%s', bdp_string, buildNo, get_platform());
+directory =  sprintf('bdp_%s_build_%s_%s', bdp_string, buildHash, get_platform());
 
 mkdir(directory);
-create_manifest(bdp_version, buildNo, fullfile(directory, 'bdpmanifest.xml'));
-create_about(bdp_version, buildNo, fullfile(directory, 'About_BDP.txt'));
+create_manifest(bdp_version, buildHash, fullfile(directory, 'bdpmanifest.xml'));
+create_about(bdp_version, buildHash, fullfile(directory, 'About_BDP.txt'));
 
 % copy correct lic to License.txt
 switch lic
@@ -208,7 +209,7 @@ setLineEndings(fullfile(directory, 'License.txt'));
 end
 
 
-function create_manifest(bdp_version, buildNo, filename)
+function create_manifest(bdp_version, buildHash, filename)
 compile_date = datestr(now, 'yyyy-mm-dd');
 mcr_version = get_mcr_version();
 platform = get_platform();
@@ -221,7 +222,7 @@ manifest = sprintf(...
    '\t<date>%s</date>\n'...
    '\t<mcrversion>%s</mcrversion>\n'...
    '\t<platform>%s</platform>\n'...
-   '</bdpmanifest>\n'], num2str(bdp_version), num2str(buildNo, '%04d'), compile_date, mcr_version, platform);
+   '</bdpmanifest>\n'], num2str(bdp_version), buildHash, compile_date, mcr_version, platform);
 
 fid = fopen(filename, 'w');
 fprintf(fid, manifest);
@@ -248,7 +249,7 @@ end
 
 
 
-function create_about(bdp_version, buildNo, filename)
+function create_about(bdp_version, buildHash, filename)
 % Merge README.txt and NOTICE.txt into About.txt with version info
 
 fot = fopen(filename, 'w');
@@ -265,7 +266,7 @@ while ~feof(fin)
       end;
    end
    if strcmp(tline, str_match)
-      fprintf(fot, 'This is version %s (build #%04d) of BDP, released on %s.\n\n', bdp_version, buildNo, datestr(now, 'dd-mmm-yyyy'));
+      fprintf(fot, 'This is version %s (build #%04d) of BDP, released on %s.\n\n', bdp_version, buildHash, datestr(now, 'dd-mmm-yyyy'));
    end
    fprintf(fot, '%s\n', tline);
 end

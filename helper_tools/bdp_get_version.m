@@ -22,8 +22,8 @@
 % USA.
 % 
 
-
-function [versionStr, releaseDate, buildNo] = bdp_get_version(manifestFile)
+% dws 24Aug2026 - removing build number from comparison because we have switched to git hashes
+function [versionStr, releaseDate, buildHash] = bdp_get_version(manifestFile)
 % Returns the version and release date of BDP from the bdpmanifest.xml file.
 % Returns empty strings if running from Matlab or file cannot be found.
 
@@ -34,7 +34,7 @@ end
 
 versionStr = '';
 releaseDate = '';
-buildNo = [];
+buildHash = '';
 
 try
    if strncmpi(manifestFile, 'http://', 7)
@@ -58,8 +58,9 @@ if isempty(temp)
       versionStr = [versionStr ' (build #0000)'];
    end
 else
-   buildNo = str2double(temp{1});
-   versionStr = [versionStr ' (build #' temp{1} ')'];
+   buildHash=temp{1}
+   % buildNo = str2double(temp{1});
+   % versionStr = [versionStr ' (build #' temp{1} ')'];
 end
 
 end

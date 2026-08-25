@@ -37,8 +37,9 @@ end
 CHANGELOG_URL = 'http://brainsuite.org/bdp/bdpchangelog.txt';
 DOWNLOAD_URL = 'http://brainsuite.org/download/';
 
-[onlineVersion, onlineDate, ~, onlineBuildNo] = bdp_get_online_version();
-[thisVersion, thisDate, thisBuildNo] = bdp_get_version();
+% dws 24Aug2026 - removing build number from comparison because we have switched to git hashes
+[onlineVersion, onlineDate, ~, onlinebuildHash] = bdp_get_online_version();
+[thisVersion, thisDate, ~] = bdp_get_version();
 
 if isempty(thisVersion) || isempty(onlineVersion)
     fprintf(1, bdp_linewrap(['Problem checking version numbers. Make sure you are connected to '...
@@ -46,12 +47,12 @@ if isempty(thisVersion) || isempty(onlineVersion)
     return; % Could not determine one of the versions
 end
 
-if datenum(onlineDate)>datenum(thisDate) || onlineBuildNo>thisBuildNo
+if datenum(onlineDate)>datenum(thisDate) % || onlineBuildNo>thisBuildNo
     changeLog = get_change_log(CHANGELOG_URL, thisDate);
     
     fprintf(1, 'New version of BDP available.\n');
     fprintf(1, 'Current Version: %s, released %s\n', thisVersion, thisDate);
-    fprintf(1, 'Latest Version: %s (build #%04d), released %s\n\n', onlineVersion, onlineBuildNo, onlineDate);
+    fprintf(1, 'Latest Version: %s (build #%s), released %s\n\n', onlineVersion, onlinebuildHash, onlineDate);
     
     fprintf(1, '%s\n', changeLog);
     fprintf(1, 'To download the latest version, please visit:\n');

@@ -22,19 +22,18 @@
 % USA.
 % 
 
-
-function [versionStr, releaseDate, bdpStr, buildNo] = bdp_get_online_version(manifestFile)
+% dws 24Aug2026 - removing build number from comparison because we have switched to git hashes
+function [versionStr, releaseDate, bdpStr, buildHash] = bdp_get_online_version(manifestFile)
 % Returns the version and release date of latest BDP from website.
 % Returns empty strings if file cannot be found.
 
 bdpStr = '';
 releaseDate = '';
 versionStr = '';
-buildNo = [];
+buildHash = '';
 
 if nargin==0
    manifestFile = 'http://brainsuite.org/latestversions.xml';
-   % manifestFile = 'http://neuroimage.usc.edu/~chitresh/latestversions.xml';
 end
 
 try
@@ -56,7 +55,7 @@ versionStr = versionStr{1};
 releaseDate = regexpi(bdpStr, 'releasedate="([^"]*)"', 'tokens', 'once');
 releaseDate = releaseDate{1};
 
-buildStr = regexpi(bdpStr, 'build="([^"]*)"', 'tokens', 'once');
-buildNo = str2double(buildStr{1});
+buildHash = regexpi(bdpStr, 'build="([^"]*)"', 'tokens', 'once');
+% buildNo = str2double(buildStr{1});
 
 end
