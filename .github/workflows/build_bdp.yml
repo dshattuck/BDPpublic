@@ -96,14 +96,6 @@ jobs:
           startup-options: -sd packaging_tools
           command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.SHORT_SHA }} --lic GPL"
 
-      - name: Prepare for Artifact
-        if: github.event_name != 'release'
-        shell: bash
-        run: |
-          ls -l ${{ github.workspace }}/packaging_tools/ || 1
-          echo "======"
-          ls -l || 1
-
       - name: Save Build as Artifact
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v7
