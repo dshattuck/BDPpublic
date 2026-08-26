@@ -103,11 +103,12 @@ jobs:
           echo "=== Staging MATLAB Output Package ==="
           cd ${{ github.workspace }}/packaging_tools
           mkdir -p bdp_dmg_stage
-          if [ -f "${{ env.PackageFile }}" ]; then
-            tar -xf "${{ env.PackageFile }}" -C bdp_dmg_stage/
-            rm -f "${{ env.PackageFile }}" # Remove the unsigned archive
+          if [ -f "${{ env.Package }}" ]; then
+            tar -xf "${{ env.Package }}" -C bdp_dmg_stage/
+            rm -f "${{ env.Package }}" # Remove the unsigned archive
           else
-            echo "Error: Target package file ${{ env.PackageFile }} not found!"
+            echo "Error: Target package file ${{ env.Package }} not found!"
+            ls -l packaging_tools
             exit 1
           fi          
           $DMG_FILE="${PackageFile%.tar.gz}.dmg"
