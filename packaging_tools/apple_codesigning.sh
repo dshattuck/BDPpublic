@@ -16,9 +16,11 @@ if [ ! -f "$SRCTAR" ]; then
   exit 1
 fi
 tar xf ${SRCTAR}
-BDP_SOURCE_FOLDER=${SRCTAR%.tar.gz}
+BASENAME=$(basename $SRCTAR)
+BDP_SOURCE_FOLDER=${BASENAME%.tar.gz}
 if [ ! -d "$BDP_SOURCE_FOLDER" ]; then
   echo "Source folder not found $BDP_SOURCE_FOLDER!"
+  ls -l
   exit 1
 fi
 
