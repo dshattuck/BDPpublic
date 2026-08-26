@@ -1,7 +1,7 @@
 #!/bin/bash
 # helper script for GitHub action
 
-set -e
+set -ex
 if (( $# < 3 )); then
   echo "usage: $0 source.tgz version_str final.dmg"
   exit 1
@@ -16,7 +16,7 @@ if [ ! -f "$SRCTAR" ]; then
   exit 1
 fi
 tar xf ${SRCTAR}
-BDP_SOURCE_FOLDER=bdp_26a_dev_build_d75b6cc_maci64
+BDP_SOURCE_FOLDER=${SRCTAR%.tar.gz}
 if [ ! -d "$BDP_SOURCE_FOLDER" ]; then
   echo "Source folder not found $BDP_SOURCE_FOLDER!"
   exit 1
