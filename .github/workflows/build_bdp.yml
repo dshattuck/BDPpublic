@@ -17,12 +17,16 @@ jobs:
         include:
           - os: ubuntu-latest
             enable_cache: true
+            suffix: linux.tar.gz
           - os: windows-latest
             enable_cache: true
+            suffix: linux.tar.gz
           - os: macos-26
             enable_cache: false
+            suffix: _maca.tgz
           - os: macos-26-intel
             enable_cache: true
+            suffix: _maci.tgz
 
     runs-on:
       labels: ["${{ matrix.os }}" ]
@@ -56,12 +60,19 @@ jobs:
       - name: Set Global Build Identifier
         shell: bash
         run: |
-          LOCAL_SHA=${GITHUB_SHA::7}        
+          LOCAL_SHA=${GITHUB_SHA::7}     
+          FILENAME=bdp_${{ env.VERSION }}_build_${LOCAL_SHA}_${{ matrix.suffix }}
           echo "SHORT_SHA=${LOCAL_SHA}" >> $GITHUB_ENV
-          echo "BUILD_STR=bdp_${{ env.VERSION }}_build_${LOCAL_SHA}" >> $GITHUB_ENV
+          echo "PackageFile=${FILENAME}" >> $GITHUB_ENV          
+          echo "Package=${{ github.workspace }}/packaging_tools/${FILENAME}" >> $GITHUB_ENV
+          
+      - name: set output name
+        shell: bash      
+        run: |
 
       - name: Check out repository
         uses: actions/checkout@v6
+        
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v3
         with:
@@ -73,25 +84,25 @@ jobs:
             Medical_Imaging_Toolbox
             Parallel_Computing_Toolbox
 
-      - name: set MacOS x64 environment variables
-        if: runner.os == 'macOS' && runner.arch == 'X64'
-        run: |
-          echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_maci64.tar.gz" >> $GITHUB_ENV
+      # - name: set MacOS x64 environment variables
+      #   if: runner.os == 'macOS' && runner.arch == 'X64'
+      #   run: |
+      #     echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_maci64.tar.gz" >> $GITHUB_ENV
 
-      - name: set MacOS x64 environment variables
-        if: runner.os == 'macOS' && runner.arch == 'ARM64'
-        run: |
-          echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_maca64.tar.gz" >> $GITHUB_ENV
+      # - name: set MacOS x64 environment variables
+      #   if: runner.os == 'macOS' && runner.arch == 'ARM64'
+      #   run: |
+      #     echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_maca64.tar.gz" >> $GITHUB_ENV
 
-      - name: set Linux environment variables
-        if: runner.os == 'Linux'
-        run: |
-          echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_linux.tar.gz" >> $GITHUB_ENV
+      # - name: set Linux environment variables
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_linux.tar.gz" >> $GITHUB_ENV
 
-      - name: set Windows environment variables
-        if: runner.os == 'Windows'
-        run: |
-          echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_win64.zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      # - name: set Windows environment variables
+      #   if: runner.os == 'Windows'
+      #   run: |
+      #     echo "Package=${PWD}/packaging_tools/${{ env.BUILD_STR }}_win64.zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: compile BDP Mex files
         uses: matlab-actions/run-command@v3
@@ -116,9 +127,11 @@ jobs:
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.ArtifactName }}
+          name: ${{ env.PackageFile }}
           path: ${{ env.Package }}
+          archive: false
           overwrite: true
+          retention-days: 7
           
       - name: Publish ${{ env.Package }}
         if: github.event_name == 'release'
