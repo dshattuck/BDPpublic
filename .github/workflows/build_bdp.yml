@@ -132,7 +132,7 @@ jobs:
             --password "${{ secrets.MACOS_NOTARIZATION_PWD }}" \
             --team-id "${{ secrets.MACOS_TEAM_ID }}" \
             --wait
-
+          sleep 30
           echo "=== Stapling the Notarization Ticket to the DMG ==="
           # Attaches the cryptographic proof directly to the file so it works completely offline
           xcrun stapler staple "$DMG_FILE"
@@ -165,3 +165,42 @@ jobs:
         run: |
           rm -rf $GITHUB_WORKSPACE/*
           rm -rf $GITHUB_WORKSPACE/.* 2>/dev/null || true
+
+  # This job executes alone ONLY after all 4 matrix compilations finish successfully
+  update_release_notes:
+    name: Update Production Release Description
+    needs: build                          # Forces this job to wait for your compilation job to finish
+    if: github.event_name == 'release'     # Only run this for true official release events
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Publish Release Notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authenticates the native gh CLI engine
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          # 1. Clean out the 'v' if present to match your naming convention (e.g. 26a_RC1)
+          CLEAN_VER="${TAG_NAME#v}"
+          MACBADGE="[![MACOS](https://img.shields.io/static/v1?label=Download&message=macOS%20Signed&color=000000&style=for-the-badge&logo=apple&logoColor=white)]"
+          LINBADGE="[![LINUX](https://img.shields.io/static/v1?label=Download&message=Linux%20x64&color=FCC624&style=for-the-badge&logo=linux&logoColor=black)]"
+          WINBADGE="[![WINDOWS](https://img.shields.io/static/v1?label=Download&message=Windows%20x64&color=0078D4&style=for-the-badge&logo=windows&logoColor=white)]"
+
+          echo "Compiling Markdown text block for Release ${TAG_NAME}..."
+          
+          # 2. Build your custom Markdown text template using a standard heredoc block
+          # These download URLs exactly match GitHub's native asset distribution path structure
+          read -r -d '' MARKDOWN_BODY <<EOF
+          ## BrainSuite Diffusion Pipeline (BDP) {CLEAN_VER} - Release Notes
+                  
+          ### Releases                    
+          * **Windows (x64):** ${WINBADGE}(https://github.com{{ github.repository }}/releases/download/${TAG_NAME}/bdp_${CLEAN_VER}_win64.zip)
+          * **Linux (x64):** ${LINBADGE}(https://github.com{{ github.repository }}/releases/download/${TAG_NAME}/bdp_${CLEAN_VER}_linux.tar.gz)
+          * **macOS Apple Silicon (ARM64 DMG):** ${MACBADGE}(https://github.com{{ github.repository }}/releases/download/${TAG_NAME}/bdp_${CLEAN_VER}_maca64.dmg)
+          * **macOS Intel (x64 DMG):** ${MACBADGE}(https://github.com{{ github.repository }}/releases/download/${TAG_NAME}/bdp_${CLEAN_VER}_maci64.dmg)
+          
+          EOF
+          
+          # 3. Use the native GitHub CLI tool to instantly update the body text of the live tag
+          echo "Updating release page on GitHub..."
+          gh release edit "$TAG_NAME" --notes "$MARKDOWN_BODY"
+          
