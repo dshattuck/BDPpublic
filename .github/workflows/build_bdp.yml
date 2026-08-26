@@ -96,6 +96,29 @@ jobs:
           startup-options: -sd packaging_tools
           command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.SHORT_SHA }} --lic GPL"
 
+      - name: Execute Apple Code Signing & DMG Packaging
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "=== Staging MATLAB Output Package ==="
+          cd ${{ github.workspace }}/packaging_tools
+          mkdir -p bdp_dmg_stage
+          if [ -f "${{ env.PackageFile }}" ]; then
+            tar -xf "${{ env.PackageFile }}" -C bdp_dmg_stage/
+            rm -f "${{ env.PackageFile }}" # Remove the unsigned archive
+          else
+            echo "Error: Target package file ${{ env.PackageFile }} not found!"
+            exit 1
+          fi          
+          $DMG_FILE="${PackageFile%.tar.gz}.dmg"
+          find bdp_dmg_stage -type f \( -perm -u+x -o -name "*.mex*" \) -exec \
+            codesign --force --options runtime --deep --sign "Developer ID Application" {} \;
+          hdiutil create -volname "BrainSuite Diffusion Pipeline" -srcfolder bdp_dmg_stage -ov -format UDZO "$DMG_FILE"
+          rm -rf bdp_dmg_stage
+          echo "PackageFile=${DMG_FILE}" >> $GITHUB_ENV          
+          echo "Package=${{ github.workspace }}/packaging_tools/${DMG_FILE}" >> $GITHUB_ENV
+
+
       - name: Save Build as Artifact
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v7
@@ -105,7 +128,7 @@ jobs:
           archive: false
           overwrite: true
           retention-days: 7
-          
+
       - name: Publish ${{ env.Package }}
         if: github.event_name == 'release'
         uses: ncipollo/release-action@v1
