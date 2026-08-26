@@ -23,11 +23,11 @@ jobs:
             suffix: win64.zip
           - os: macos-26
             enable_cache: false
-            suffix: maca64.tgz
+            suffix: maca64.tar.gz
           - os: macos-26-intel
             enable_cache: true
-            suffix: maci64.tgz
-
+            suffix: maci64.tar.gz
+            
     runs-on:
       labels: ["${{ matrix.os }}" ]
 
@@ -59,10 +59,9 @@ jobs:
         run: |
           echo "VERSION=${DEV_VERSION#v}" >> $GITHUB_ENV
 
-      - name: Set Global Build Identifier
+      - name: Construct Package Name
         shell: bash
         run: |
-          ls -lrt ${{ github.workspace }}/packaging_tools
           LOCAL_SHA=${GITHUB_SHA::7}     
           FILENAME=bdp_${{ env.VERSION }}_build_${LOCAL_SHA}_${{ matrix.suffix }}
           echo "SHORT_SHA=${LOCAL_SHA}" >> $GITHUB_ENV
@@ -92,11 +91,6 @@ jobs:
           startup-options: -sd packaging_tools
           command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.SHORT_SHA }} --lic GPL"
   
-      - name: check path
-        shell: bash
-        run: |
-          ls -lrt ${{ github.workspace }}/packaging_tools
-          
       - name: Execute Apple Code Signing & DMG Packaging
         if: runner.os == 'macOS'
         shell: bash
@@ -109,7 +103,6 @@ jobs:
             rm -f "${{ env.Package }}" # Remove the unsigned archive
           else
             echo "Error: Target package file ${{ env.Package }} not found!"
-            ls -l packaging_tools
             exit 1
           fi          
           $DMG_FILE="${PackageFile%.tar.gz}.dmg"
