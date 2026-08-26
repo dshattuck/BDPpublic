@@ -102,44 +102,19 @@ jobs:
       - name: Execute Apple Code Signing & DMG Packaging
         if: runner.os == 'macOS'
         shell: bash
+        env:
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.MACOS_NOTARIZATION_APPLE_ID }}
+          MACOS_NOTARIZATION_PWD: ${{ secrets.MACOS_NOTARIZATION_PWD }}
+          MACOS_TEAM_ID: ${{ secrets.MACOS_TEAM_ID }}
+          MACOS_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_ID }}
         run: |
-          echo "=== Staging MATLAB Output Package ==="
-          cd ${{ github.workspace }}/packaging_tools
-          mkdir -p bdp_dmg_stage
-          if [ -f "${{ env.PackageFile }}" ]; then
-            tar -xf "${{ env.PackageFile }}" -C bdp_dmg_stage/
-            rm -f "${{ env.PackageFile }}" # Remove the unsigned archive
-          else
-            echo "Error: Target package file ${{ env.PackageFile }} not found!"
-            exit 1
-          fi          
-          DMG_FILE="${PackageFile%.tar.gz}.dmg"
-          find bdp_dmg_stage -type f \( -perm -u+x -o -name "*.mex*" \) \
-            ! -name "*.icns" \
-            ! -name "*.txt" \
-            ! -name "*.xml" \
-            ! -name "*.html" -exec \
-            codesign --keychain "${{ steps.import_certs.outputs.keychain-path }}" \
-                     --force --options runtime --deep \
-                     --sign "${{ secrets.MACOS_TEAM_ID }}" {} \;
-         
-          hdiutil create -volname "BrainSuite Diffusion Pipeline" -srcfolder bdp_dmg_stage -ov -format UDZO "$DMG_FILE"
-
-          echo "=== Submitting DMG to Apple Notarization Servers ==="
-          # This command uploads the DMG, waits for verification, and staples the approval ticket automatically
-          xcrun notarytool submit "$DMG_FILE" \
-            --apple-id "${{ secrets.MACOS_NOTARIZATION_APPLE_ID }}" \
-            --password "${{ secrets.MACOS_NOTARIZATION_PWD }}" \
-            --team-id "${{ secrets.MACOS_TEAM_ID }}" \
-            --wait
-          sleep 30
-          echo "=== Stapling the Notarization Ticket to the DMG ==="
-          # Attaches the cryptographic proof directly to the file so it works completely offline
-          xcrun stapler staple "$DMG_FILE"
-          rm -rf bdp_dmg_stage
-          echo "PackageFile=${DMG_FILE}" >> $GITHUB_ENV          
-          echo "Package=${{ github.workspace }}/packaging_tools/${DMG_FILE}" >> $GITHUB_ENV
-
+          FILENAME=${{ env.PackageFile }} 
+          DMGFILE=${FILENAME%.tar.gz}_signed.dmg  
+          DMGPATH="${{ github.workspace }}/$DMGFILE"   
+          ./packaging_tools/apple_codesigning.sh "${{ env.Package }}" "${{ env.VERSION }}_build_${{ env.SHORT_SHA }}" "$DMGPATH"
+          echo "PackageFile=${DMGFILE}" >> $GITHUB_ENV          
+          echo "Package=${DMGPATH}" >> $GITHUB_ENV
 
       - name: Save Build as Artifact
         if: github.event_name != 'release'

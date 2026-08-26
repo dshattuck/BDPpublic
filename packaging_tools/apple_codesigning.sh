@@ -2,13 +2,14 @@
 # helper script for GitHub action
 
 set -e
-if (( $# < 2 )); then
-  echo "usage: $0 source.tgz version_str"
+if (( $# < 3 )); then
+  echo "usage: $0 source.tgz version_str final.dmg"
   exit 1
 fi
 
-SRCTAR=$1
-version=$2
+SRCTAR="$1"
+version="$2"
+FINAL_DMG="$3"
 
 if [ ! -f "$SRCTAR" ]; then
   echo "Source tar $SRCTAR not found!"
@@ -47,7 +48,6 @@ if [ -f "$PRELAUNCH_PATH" ]; then
 fi
 
 TMP_DMG="./raw_${version}_bdp.dmg"
-FINAL_DMG="bdp${version}_mac_signed.dmg"
 rm -f "$TMP_DMG" "$FINAL_DMG"
 
 echo ">>> [1/3] Packaging Compressed DMG..."
