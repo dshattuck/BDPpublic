@@ -115,12 +115,15 @@ jobs:
           fi          
           DMG_FILE="${PackageFile%.tar.gz}.dmg"
           find bdp_dmg_stage -type f \( -perm -u+x -o -name "*.mex*" \) -exec \
-            codesign --force --options runtime --deep --sign "Developer ID Application" {} \;
+            codesign --keychain "${{ steps.import_certs.outputs.keychain-path }}" \
+                     --force --options runtime --deep \
+                     --sign "${{ secrets.MACOS_SIGNING_NAME }}" {} \;            
           hdiutil create -volname "BrainSuite Diffusion Pipeline" -srcfolder bdp_dmg_stage -ov -format UDZO "$DMG_FILE"
           rm -rf bdp_dmg_stage
           echo "PackageFile=${DMG_FILE}" >> $GITHUB_ENV          
           echo "Package=${{ github.workspace }}/packaging_tools/${DMG_FILE}" >> $GITHUB_ENV
 
+# codesign --force --options runtime --deep --sign "Developer ID Application" {} \;
 
       - name: Save Build as Artifact
         if: github.event_name != 'release'
