@@ -105,7 +105,7 @@ jobs:
             echo "Error: Target package file ${{ env.Package }} not found!"
             exit 1
           fi          
-          $DMG_FILE="${PackageFile%.tar.gz}.dmg"
+          DMG_FILE="${PackageFile%.tar.gz}.dmg"
           find bdp_dmg_stage -type f \( -perm -u+x -o -name "*.mex*" \) -exec \
             codesign --force --options runtime --deep --sign "Developer ID Application" {} \;
           hdiutil create -volname "BrainSuite Diffusion Pipeline" -srcfolder bdp_dmg_stage -ov -format UDZO "$DMG_FILE"
