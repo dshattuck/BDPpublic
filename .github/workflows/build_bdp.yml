@@ -20,13 +20,13 @@ jobs:
             suffix: linux.tar.gz
           - os: windows-latest
             enable_cache: true
-            suffix: linux.tar.gz
+            suffix: win64.zip
           - os: macos-26
             enable_cache: false
-            suffix: _maca.tgz
+            suffix: maca.tgz
           - os: macos-26-intel
             enable_cache: true
-            suffix: _maci.tgz
+            suffix: maci.tgz
 
     runs-on:
       labels: ["${{ matrix.os }}" ]
