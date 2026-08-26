@@ -62,7 +62,7 @@ jobs:
       - name: Set Global Build Identifier
         shell: bash
         run: |
-          ls ${{ github.workspace }}/packaging_tools
+          ls -lrt ${{ github.workspace }}/packaging_tools
           LOCAL_SHA=${GITHUB_SHA::7}     
           FILENAME=bdp_${{ env.VERSION }}_build_${LOCAL_SHA}_${{ matrix.suffix }}
           echo "SHORT_SHA=${LOCAL_SHA}" >> $GITHUB_ENV
@@ -91,7 +91,12 @@ jobs:
         with:
           startup-options: -sd packaging_tools
           command: "CompileBrainSuiteDiffusionPipeline --package ${{ env.VERSION }} --build ${{ env.SHORT_SHA }} --lic GPL"
-
+  
+      - name: check path
+        shell: bash
+        run: |
+          ls -lrt ${{ github.workspace }}/packaging_tools
+          
       - name: Execute Apple Code Signing & DMG Packaging
         if: runner.os == 'macOS'
         shell: bash
