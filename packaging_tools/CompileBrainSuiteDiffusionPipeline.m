@@ -84,48 +84,8 @@ end
 
 
 if compile
-   if ismac
-    disp('Building on macOS. Configuring SIP-proof runtime paths...');
-    relInfo = matlabRelease; % e.g., 'R2025b'
-    matlabFolderName = sprintf('MATLAB_%s.app', relInfo.Release); 
-    [mcrMajor, mcrMinor] = mcrversion; % e.g., 'v252'
-    mcrFolderName = sprintf('v%d%d', mcrMajor, mcrMinor); 
-    archSuffix = computer('arch'); % e.g., 'maci64' or 'maca64'
-    fullMatlabBase = fullfile('/Applications', matlabFolderName);
-    runtimeBase    = fullfile('/Applications/MATLAB/MATLAB_Runtime', mcrFolderName);
-
-    rpaths = { ...
-        [fullfile(fullMatlabBase, 'bin', archSuffix)], ...
-        [fullfile(fullMatlabBase, 'runtime', archSuffix)], ...
-        [fullfile(fullMatlabBase, 'sys/os', archSuffix)], ...
-        [fullfile(runtimeBase, 'bin', archSuffix)], ...
-        [fullfile(runtimeBase, 'runtime', archSuffix)], ...
-        [fullfile(runtimeBase, 'sys/os', archSuffix)] ...
-    };
-    % macLinkerFlags = [{'-R'}, {rpaths{1}}, {'-R'}, {rpaths{2}}, {'-R'}, {rpaths{3}}, ...
-    %                   {'-R'}, {rpaths{4}}, {'-R'}, {rpaths{5}}, {'-R'}, {rpaths{6}}];
-    % 
-    % Merge with your existing standard mcc arguments
-    % mccArgs = [{'-m', '-v', 'BrainSuite_Diffusion_pipeline.m', '-a', '../mat_files/*'}, macLinkerFlags];
-    % mcc(mccArgs{:})
-    binaryPath = fullfile(pwd, 'BrainSuite_Diffusion_pipeline.app', 'Contents', 'MacOS', 'BrainSuite_Diffusion_pipeline');
     mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
-    system(sprintf('install_name_tool -delete_rpath "@loader_path/../../sys/os/%s" "%s"', archSuffix, binaryPath));
-    for i = 1:numel(rpaths)
-        [status, cmdMsg] = system(sprintf('install_name_tool -add_rpath "%s" "%s"', rpaths{i}, binaryPath));
-        if status ~= 0
-            % This will catch and print things like duplicate path warnings or write blocks
-            fprintf('Notice/Error applying rpath [%s]: %s\n', rpaths{i}, strtrim(cmdMsg));
-        end
-    end
-        disp('=== Verifying Injected Binary RPaths ===');
-    [~, otoolOutput] = system(sprintf('otool -l "%s" | grep -A 2 LC_RPATH', binaryPath));
-    disp(otoolOutput);
-   else % both Linux and Windows
-		mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
-   end
-   
-   disp('Compiling done');
+    disp('Compiling done');
 end
 
 
