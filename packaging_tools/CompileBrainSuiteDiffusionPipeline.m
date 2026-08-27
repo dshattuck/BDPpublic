@@ -107,9 +107,9 @@ if compile
                   
     % Merge with your existing standard mcc arguments
     mccArgs = [{'-m', '-v', 'BrainSuite_Diffusion_pipeline.m', '-a', '../mat_files/*'}, macLinkerFlags];
+    mcc(mccArgs{:})
 
-
-      mcc -m -v -a ../mat_files/*
+      % mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
    else % both Linux and Windows
 		mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
    end
