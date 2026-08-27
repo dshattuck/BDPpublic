@@ -1,6 +1,7 @@
 #!/bin/bash
 # helper script for GitHub action
-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLIST="${SCRIPT_DIR}/entitlements.plist"
 set -ex
 if (( $# < 3 )); then
   echo "usage: $0 source.tgz version_str final.dmg"
@@ -27,7 +28,7 @@ fi
 echo ">>> [Pre-Pass Step 1/3] Recursively re-signing all background math modules..."
 find "$BDP_SOURCE_FOLDER" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" -o -name "*.sh" -o -name "*.mexmaci64" \) ! -name "prelaunch" | while read -r binary; do
     codesign --remove-signature "$binary" 2>/dev/null || true
-    codesign --force --options runtime --no-strict --sign "$MACOS_DEVELOPER_ID" --timestamp "$binary" 2>/dev/null || true
+    codesign --force --options runtime --entitlements "${PLIST}"--no-strict --sign "$MACOS_DEVELOPER_ID" --timestamp "$binary" 2>/dev/null || true
 done
 
 echo ">>> [Pre-Pass Step 2/3] Sealing primary executable engines..."
@@ -38,7 +39,7 @@ MAIN_EXECS=(
 for exec in "${MAIN_EXECS[@]}"; do
     if [ -f "$exec" ]; then
         codesign --remove-signature "$exec" 2>/dev/null || true
-        codesign --force --options runtime --no-strict --sign "$MACOS_DEVELOPER_ID" --timestamp "$exec" 2>/dev/null || true
+        codesign --force --options runtime --entitlements "${PLIST}"--no-strict --sign "$MACOS_DEVELOPER_ID" --timestamp "$exec" 2>/dev/null || true
     fi
 done
 
@@ -46,7 +47,7 @@ echo ">>> [Pre-Pass Step 3/3] Finalizing MATLAB prelaunch runtime wrapper..."
 PRELAUNCH_PATH="$BDP_SOURCE_FOLDER/bdp.app/Contents/MacOS/prelaunch"
 if [ -f "$PRELAUNCH_PATH" ]; then
     codesign --remove-signature "$PRELAUNCH_PATH" 2>/dev/null || true
-    codesign --force --options runtime --no-strict --sign "$MACOS_DEVELOPER_ID" --timestamp "$PRELAUNCH_PATH" 2>/dev/null || true
+    codesign --force --options runtime --entitlements "${PLIST}"--no-strict --sign "$MACOS_DEVELOPER_ID" --timestamp "$PRELAUNCH_PATH" 2>/dev/null || true
 fi
 
 TMP_DMG="./raw_${version}_bdp.dmg"
