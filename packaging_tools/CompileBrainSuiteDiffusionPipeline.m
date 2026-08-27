@@ -84,43 +84,34 @@ end
 
 
 if compile
-   if true
-      mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
-      % mcc -m -v dicom2nifti_Diffusion.m
-      % mcc -m -v coregister_diffusion_mprage_pipeline -a ..\mat_files\*
-      % mcc -m -v estimate_SH_FRT_FRACT_mprage
-      % mcc -m -v estimate_tensors_mprages
-      
-      %    elseif ismac
-      %       mcc -m -R -nodisplay -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
-      %       % mcc -m -v dicom2nifti_Diffusion.m
-      %       % mcc -m -v coregister_diffusion_mprage_pipeline -a ../mat_files/*
-      %       % mcc -m -v estimate_SH_FRT_FRACT_mprage
-      %       % mcc -m -v estimate_tensors_mprage
-      
-   else % both Linux and Mac
-		mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
-    %dws 11-Apr-2023 : the code below fails after source code packaging
+   if ismac
+    disp('Building on macOS. Configuring SIP-proof runtime paths...');
+    relInfo = matlabRelease; % e.g., 'R2025b'
+    matlabFolderName = sprintf('MATLAB_%s.app', relInfo.Release); 
+    [mcrMajor, mcrMinor] = mcrversion; % e.g., 'v252'
+    mcrFolderName = sprintf('v%d%d', mcrMajor, mcrMinor); 
+    archSuffix = computer('arch'); % e.g., 'maci64' or 'maca64'
+    fullMatlabBase = fullfile('/Applications', matlabFolderName);
+    runtimeBase    = fullfile('/Applications/MATLAB/MATLAB_Runtime', mcrFolderName);
 
-      % Somehow mcc does not work from matlab in all of USC *nix computers! But it does work from
-      % Unix command prompt. It uses mcc executable at [matlabroot() '/bin/mcc']
-      
-      % bdp_path = search_rmpath('brainsuite-diffusion-pipeline');
-      % cmd_str = ['-I ' bdp_path];
-      % cmd_str = strrep(cmd_str, pathsep, ' -I ');
-      % cmd_str = [matlabroot(), '/bin/mcc -m ' cmd_str ' -v BrainSuite_Diffusion_pipeline.m '];
-      
-      % mat_dir = [pwd '/../mat_files'];
-      % listing = dir(mat_dir);
-      % if length(listing)>2
-      %    mat_str = [];
-      %    for k = 3:length(listing)
-      %       mat_str = [mat_str ' -a ' fullfile(mat_dir, listing(k).name)];
-      %    end
-      %    cmd_str = [cmd_str mat_str];
-      % end
-      % [status, result] = system(cmd_str,'-echo');
-      % addpath(bdp_path);
+    rpaths = { ...
+        ['-add_rpath,' fullfile(fullMatlabBase, 'bin', archSuffix)], ...
+        ['-add_rpath,' fullfile(fullMatlabBase, 'runtime', archSuffix)], ...
+        ['-add_rpath,' fullfile(fullMatlabBase, 'sys/os', archSuffix)], ...
+        ['-add_rpath,' fullfile(runtimeBase, 'bin', archSuffix)], ...
+        ['-add_rpath,' fullfile(runtimeBase, 'runtime', archSuffix)], ...
+        ['-add_rpath,' fullfile(runtimeBase, 'sys/os', archSuffix)] ...
+    };
+    macLinkerFlags = [{'-R'}, {rpaths{1}}, {'-R'}, {rpaths{2}}, {'-R'}, {rpaths{3}}, ...
+                      {'-R'}, {rpaths{4}}, {'-R'}, {rpaths{5}}, {'-R'}, {rpaths{6}}];
+                  
+    % Merge with your existing standard mcc arguments
+    mccArgs = [{'-m', '-v', 'BrainSuite_Diffusion_pipeline.m', '-a', '../mat_files/*'}, macLinkerFlags];
+
+
+      mcc -m -v -a ../mat_files/*
+   else % both Linux and Windows
+		mcc -m -v BrainSuite_Diffusion_pipeline.m -a ../mat_files/*
    end
    
    disp('Compiling done');
